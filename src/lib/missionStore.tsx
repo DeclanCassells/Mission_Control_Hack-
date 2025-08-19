@@ -127,7 +127,7 @@ function createTicketFromCheck(check: Check): Ticket {
 function initialStaff(): { servers: StaffMember[]; boh: StaffMember[] } {
   const now = Date.now() - 60 * 60 * 1000; // clocked in an hour ago
   const servers: StaffMember[] = [
-    { id: "s1", name: "Alex Kim", role: "server", hourlyWageUsd: 16, clockInAt: now, tipsUsd: 130, salesUsd: 650, slph: 35.2, voids: 1, discounts: 2, overtimeMinutes: 0 },
+    { id: "s1", name: "Alex Kim", role: "server", hourlyWageUsd: 16, clockInAt: now, tipsUsd: 130, salesUsd: 650, slph: 35.2, voids: 1, discounts: 2, overtimeMinutes: -15 },
     { id: "s2", name: "Jamie Lee", role: "server", hourlyWageUsd: 15, clockInAt: now, tipsUsd: 80, salesUsd: 425, slph: 28.4, voids: 0, discounts: 1, overtimeMinutes: 0 },
     { id: "s3", name: "Morgan Patel", role: "server", hourlyWageUsd: 18, clockInAt: now, tipsUsd: 150, salesUsd: 785, slph: 40.1, voids: 2, discounts: 3, overtimeMinutes: 30 },
     { id: "s4", name: "Riley Jones", role: "server", hourlyWageUsd: 14, clockInAt: now, tipsUsd: 45, salesUsd: 320, slph: 22.8, voids: 0, discounts: 1, overtimeMinutes: 0 },

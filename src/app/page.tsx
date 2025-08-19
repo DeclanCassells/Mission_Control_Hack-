@@ -2,6 +2,7 @@
 
 import { Header } from "@/components/mission/Header";
 import { FooterMetrics } from "@/components/mission/FooterMetrics";
+import { ScrollingMessages } from "@/components/mission/ScrollingMessages";
 import { FOH } from "@/components/mission/FOH";
 import { BOH } from "@/components/mission/BOH";
 import { MissionStoreProvider, useMissionStore } from "@/lib/missionStore";
@@ -22,6 +23,7 @@ export default function Page() {
         </div>
         <Header />
         <MainView />
+        <ScrollingMessages />
         <FooterMetrics />
         <WelcomeModal />
       </div>

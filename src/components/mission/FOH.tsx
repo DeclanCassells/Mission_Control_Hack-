@@ -39,6 +39,7 @@ function ServerColumns() {
 
 function ServerColumn({ serverId }: { serverId: string }) {
   const { servers, checksByServerId } = useMissionStore();
+  
   const server = servers.find((s) => s.id === serverId)!;
   const checks = checksByServerId[serverId] ?? [];
   const [open, paid, closed] = useMemo(() => {
@@ -75,9 +76,70 @@ function ServerColumn({ serverId }: { serverId: string }) {
     return nameMap[serverName] || "/avatars/newemployee.png";
   };
 
+  // Determine status and styling based on overtime
+  const getServerStatus = () => {
+    if (server.overtimeMinutes > 0) return "Overtime";
+    if (server.overtimeMinutes < 0) return "Approaching Overtime";
+    return "Clocked in";
+  };
+
+  const getBorderColor = () => {
+    const borderClass = server.overtimeMinutes > 0 ? "border-red-500 border-pulse-red" 
+                      : server.overtimeMinutes < 0 ? "border-orange-500 border-pulse-orange"
+                      : "border-[#C2BBA3]";
+    
+    // Debug logging
+    if (server.overtimeMinutes !== 0) {
+      console.log(`${server.name}: overtimeMinutes=${server.overtimeMinutes}, borderClass="${borderClass}"`);
+    }
+    
+    return borderClass;
+  };
+
+  const getStatusColor = () => {
+    if (server.overtimeMinutes > 0) return "text-red-600";
+    if (server.overtimeMinutes < 0) return "text-orange-600";
+    return "text-[#C26E00]";
+  };
+
   return (
     <div className="w-80 shrink-0">
-      <div className="rounded-lg border border-[#C2BBA3] bg-white shadow-sm p-3 mb-3">
+      <div className={`rounded-lg border ${getBorderColor()} bg-white ${server.overtimeMinutes === 0 ? 'shadow-sm' : ''} p-3 mb-3`}>
+        
+        {/* Custom CSS for border pulse with glow effect */}
+        <style jsx>{`
+          @keyframes border-pulse-red {
+            0%, 100% {
+              border-color: #ef4444;
+              box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+            }
+            50% {
+              border-color: #b91c1c;
+              box-shadow: 0 0 0 4px rgba(185, 28, 28, 0.4), 0 0 20px rgba(239, 68, 68, 0.6);
+            }
+          }
+          
+          @keyframes border-pulse-orange {
+            0%, 100% {
+              border-color: #f97316;
+              box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.7);
+            }
+            50% {
+              border-color: #c2410c;
+              box-shadow: 0 0 0 4px rgba(194, 65, 12, 0.4), 0 0 20px rgba(249, 115, 22, 0.6);
+            }
+          }
+          
+          :global(.border-pulse-red) {
+            animation: border-pulse-red 2s ease-in-out infinite;
+            position: relative;
+          }
+          
+          :global(.border-pulse-orange) {
+            animation: border-pulse-orange 2s ease-in-out infinite;
+            position: relative;
+          }
+        `}</style>
         {/* Header with avatar, name, and status */}
         <div className="flex items-center gap-2 mb-2">
           <ServerAvatar name={server.name} size="40" useAI={false} avatarPath={getAvatarPath(server.name)} />
@@ -86,14 +148,9 @@ function ServerColumn({ serverId }: { serverId: string }) {
             <div className="text-xs text-[#6B6B6B] flex items-center gap-1">
               <span>Server</span>
               <span className="w-1 h-1 bg-[#C26E00] rounded-full"></span>
-              <span className="text-[#C26E00] font-medium">Active</span>
+              <span className={`${getStatusColor()} font-medium`}>{getServerStatus()}</span>
             </div>
           </div>
-          {server.overtimeMinutes > 0 && (
-            <span className="shrink-0 text-[8px] rounded-full bg-red-100 text-red-700 px-2 py-0.5 font-semibold border border-red-200">
-              OVERTIME
-            </span>
-          )}
         </div>
 
         {/* Enhanced Clock info - inspired by the provided layout */}
