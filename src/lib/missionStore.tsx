@@ -92,6 +92,41 @@ function itemsTotalUsd(items: LineItem[]): number {
   return dollars(items.reduce((acc, it) => acc + it.priceUsd * it.quantity, 0));
 }
 
+// Global set to track used table numbers for open tickets
+let usedTableNumbers = new Set<number>();
+
+function getUniqueTableNumber(): number {
+  const availableNumbers = [];
+  for (let i = 1; i <= 40; i++) {
+    if (!usedTableNumbers.has(i)) {
+      availableNumbers.push(i);
+    }
+  }
+  
+  if (availableNumbers.length === 0) {
+    // If all tables are taken, reset and start over
+    usedTableNumbers.clear();
+    return Math.floor(Math.random() * 40) + 1;
+  }
+  
+  const tableNumber = availableNumbers[Math.floor(Math.random() * availableNumbers.length)];
+  usedTableNumbers.add(tableNumber);
+  return tableNumber;
+}
+
+function generateGuestName(): string {
+  const guestNames = [
+    "Sarah Martinez", "Michael Johnson", "Emily Chen", "David Rodriguez", "Jessica Williams",
+    "Alex Thompson", "Maria Garcia", "James Wilson", "Lisa Anderson", "Robert Taylor",
+    "Amanda Davis", "Kevin Brown", "Jennifer Miller", "Ryan Clark", "Nicole White",
+    "Christopher Lee", "Ashley Johnson", "Daniel Harris", "Michelle Lewis", "Andrew Martin",
+    "Stephanie Moore", "Brandon Hall", "Rachel Adams", "Justin Walker", "Lauren Young",
+    "Thomas Green", "Kimberly Scott", "Matthew Turner", "Samantha Parker", "Jonathan Evans"
+  ];
+  
+  return guestNames[Math.floor(Math.random() * guestNames.length)];
+}
+
 function createCheck(server: StaffMember, service: "dine-in" | "takeout"): Check {
   const items = generateItems();
   const amount = itemsTotalUsd(items);
@@ -103,10 +138,10 @@ function createCheck(server: StaffMember, service: "dine-in" | "takeout"): Check
     openedAt: now,
     status: "open",
     serviceType: service,
-    tableNumber: service === "dine-in" ? 10 + Math.floor(Math.random() * 9000) : undefined,
+    tableNumber: service === "dine-in" ? getUniqueTableNumber() : undefined,
     quoteTimeMinutes: service === "takeout" ? 15 : undefined,
     serverId: service === "dine-in" ? server.id : undefined,
-    guestName: Math.random() < 0.5 ? "Guest" : undefined,
+    guestName: generateGuestName(),
     guests: 1 + Math.floor(Math.random() * 4),
     items,
   };
@@ -286,21 +321,12 @@ export function MissionStoreProvider({ children }: { children: React.ReactNode }
             // Server has no open checks, create a new one
             const server = servers.find(s => s.id === serverId);
             if (server) {
-              const service = Math.random() < 0.25 ? "takeout" : "dine-in";
-              const newCheck = createCheck(server, service);
+              const newCheck = createCheck(server, "dine-in");
               next[serverId] = [newCheck, ...checks];
               hasChanges = true;
               
               // Also create a ticket for the new check
               setTickets((prev) => [createTicketFromCheck(newCheck), ...prev]);
-              
-              // If it's a takeout order, add to pickup
-              if (service === "takeout") {
-                setPickup((prev) => [
-                  { id: `P${100 + Math.floor(Math.random() * 900)}`, checkId: newCheck.id, quoteMinutes: newCheck.quoteTimeMinutes ?? 15, delayMinutes: 0, state: "active" },
-                  ...prev,
-                ]);
-              }
             }
           }
         }
@@ -316,7 +342,16 @@ export function MissionStoreProvider({ children }: { children: React.ReactNode }
     setChecksByServerId((prev) => {
       const next: Record<string, Check[]> = {};
       for (const [sid, arr] of Object.entries(prev)) {
-        next[sid] = arr.map((c) => (c.id === checkId ? { ...c, status: "closed" } : c));
+        next[sid] = arr.map((c) => {
+          if (c.id === checkId) {
+            // Free up table number when closing dine-in check
+            if (c.serviceType === "dine-in" && c.tableNumber && c.status === "open") {
+              usedTableNumbers.delete(c.tableNumber);
+            }
+            return { ...c, status: "closed" };
+          }
+          return c;
+        });
       }
       return next;
     });
@@ -354,16 +389,9 @@ export function MissionStoreProvider({ children }: { children: React.ReactNode }
   function createNewCheck(serverId: string) {
     const server = servers.find(s => s.id === serverId);
     if (server) {
-      const service = Math.random() < 0.25 ? "takeout" : "dine-in";
-      const newCheck = createCheck(server, service);
+      const newCheck = createCheck(server, "dine-in");
       setChecksByServerId((prev) => ({ ...prev, [serverId]: [newCheck, ...(prev[serverId] ?? [])] }));
       setTickets((prev) => [createTicketFromCheck(newCheck), ...prev]);
-      if (service === "takeout") {
-        setPickup((prev) => [
-          { id: `P${100 + Math.floor(Math.random() * 900)}`, checkId: newCheck.id, quoteMinutes: newCheck.quoteTimeMinutes ?? 15, delayMinutes: 0, state: "active" },
-          ...prev,
-        ]);
-      }
     }
   }
 

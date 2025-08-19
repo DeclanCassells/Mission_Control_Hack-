@@ -213,7 +213,7 @@ function ServerColumn({ serverId }: { serverId: string }) {
 
       {/* Tabs */}
       <div className="sticky top-12 z-10 bg-white mb-4">
-        <div className="inline-flex gap-1 p-1 rounded-xl border border-gray-200 bg-gray-50 shadow-sm">
+        <div className="flex gap-1 p-1 rounded-xl border border-gray-200 bg-gray-50 shadow-sm">
           <TabButton label={`Open (${open.length})`} active={activeTab === "open"} onClick={() => setActiveTab("open")} />
           <TabButton label={`Paid (${paid.length})`} active={activeTab === "paid"} onClick={() => setActiveTab("paid")} />
           <TabButton label={`Closed (${closed.length})`} active={activeTab === "closed"} onClick={() => setActiveTab("closed")} />
@@ -239,10 +239,10 @@ function TabButton({ label, active, onClick }: { label: string; active: boolean;
   return (
     <button
       onClick={onClick}
-      className={`px-4 py-2 text-xs font-medium rounded-lg border transition-all duration-200 ${
+      className={`flex-1 px-4 py-2 text-xs rounded-lg border transition-all duration-200 ${
         active 
-          ? "bg-white border-gray-300 shadow-sm text-gray-900" 
-          : "bg-transparent border-transparent hover:bg-white hover:border-gray-200 text-gray-600 hover:text-gray-900"
+          ? "bg-white border-gray-300 shadow-sm text-gray-900 font-bold" 
+          : "bg-transparent border-transparent hover:bg-white hover:border-gray-200 text-gray-600 hover:text-gray-900 font-medium"
       }`}
     >
       {label}
@@ -332,12 +332,8 @@ function CheckCard({ check, index = 0 }: { check: Check; index?: number }) {
       <div className="mb-3 p-3 bg-gray-50 rounded-lg border border-gray-100">
         <div className="flex items-center justify-between text-sm">
           <div className="flex items-center gap-2">
-            <span className="text-gray-500">Service:</span>
-            <span className="font-medium text-gray-900">
-              {check.serviceType === "dine-in" ? `Table #${check.tableNumber}` : 
-               check.serviceType === "takeout" ? "Takeout Order" :
-               check.serviceType === "delivery" ? "Delivery Order" : "Pickup Order"}
-            </span>
+            <img src="/table.png" alt="table" className="w-4 h-4" />
+            <span className="font-medium text-gray-900">{check.tableNumber}</span>
           </div>
           {check.guests > 0 && (
             <div className="flex items-center gap-1 text-gray-500">
@@ -346,11 +342,9 @@ function CheckCard({ check, index = 0 }: { check: Check; index?: number }) {
             </div>
           )}
         </div>
-        {check.guestName && (
-          <div className="mt-1 text-xs text-gray-600">
-            <span className="text-gray-500">Guest:</span> {check.guestName}
-          </div>
-        )}
+        <div className="mt-1 text-xs text-gray-600">
+          <span className="text-gray-500">Guest:</span> {check.guestName}
+        </div>
       </div>
 
       {/* Amount and items summary */}
@@ -644,7 +638,7 @@ function PickupColumn() {
         {pickup.map((p, index) => {
           const check = getCheckDetails(p.checkId);
           return (
-            <div key={p.id} className="rounded-xl border border-gray-200 bg-white p-2 shadow-md hover:shadow-lg transition-all duration-200">
+            <div key={p.id} className="rounded-xl border border-gray-200 bg-white p-2 transition-all duration-200">
               <div className="flex items-center">
                 {/* Left Section - Order Number + T-OUT Badge */}
                 <div className="flex flex-col items-center justify-center w-16">
