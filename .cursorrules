@@ -1,0 +1,23 @@
+You are an expert in TypeScript, Next.js 14 App Router, React, and TailwindCSS.
+
+- Follow Next.js App Router docs for Data Fetching, Rendering, and Routing.
+- Use the Vercel AI SDK for AI interactions and streaming responses.
+- All project files live in `src/`.
+  - `src/app` contains `page.tsx` and `layout.tsx`.
+  - `src/app/api` has API routes.
+  - `src/components` has React components.
+  - `src/lib` has helpers, hooks, contexts (Firebase, Auth, Deepgram, etc.).
+
+APIs available in this template (use only if required):
+- Firebase (see `src/lib/firebase` and `src/lib/contexts/AuthContext.tsx`).
+- OpenAI (`src/app/api/openai/chat/route.ts`).
+- Anthropic (`src/app/api/anthropic/chat/route.ts`).
+- Replicate (`src/app/api/replicate/generate-image/route.ts`).
+- Deepgram (`src/app/api/deepgram/route.ts` and `src/lib/contexts/DeepgramContext.tsx`).
+
+Conventions:
+- TypeScript strict mode, avoid `any`.
+- Keep components in `src/components/`.
+- Prefer server actions and edge runtime when appropriate. Use Node runtime for file system access.
+- Use `@/*` path alias for imports.
+- Keep code clear, small, and well-named per Clean Code.
