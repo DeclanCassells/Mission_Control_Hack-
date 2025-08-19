@@ -398,22 +398,50 @@ export function MissionStoreProvider({ children }: { children: React.ReactNode }
   function search(query: string) {
     const q = query.trim().toLowerCase();
     const results: { check: Check; server?: StaffMember }[] = [];
+    
+    // Check if query is 4 digits (for last 4 search)
+    const isLast4Search = /^\d{4}$/.test(q);
+    
     for (const s of servers) {
       for (const c of checksByServerId[s.id] ?? []) {
-        const hay = `${c.id} ${c.guestName ?? ""} ${c.tableNumber ?? ""}`.toLowerCase();
-        if (hay.includes(q)) results.push({ check: c, server: s });
+        let match = false;
+        
+        if (isLast4Search) {
+          // Search by last 4 digits of check ID
+          const checkLast4 = c.id.replace(/\D/g, '').slice(-4);
+          match = checkLast4 === q;
+        } else {
+          // Regular search by check ID, guest name, table number, or server name
+          const hay = `${c.id} ${c.guestName ?? ""} ${c.tableNumber ?? ""} ${s.name} table ${c.tableNumber ?? ""}`.toLowerCase();
+          match = hay.includes(q);
+        }
+        
+        if (match) results.push({ check: c, server: s });
       }
     }
+    
     for (const p of pickup) {
       // find associated check
       for (const arr of Object.values(checksByServerId)) {
         const c = arr.find((x) => x.id === p.checkId);
         if (c) {
-          const hay = `${c.id} ${c.guestName ?? ""}`.toLowerCase();
-          if (hay.includes(q)) results.push({ check: c });
+          let match = false;
+          
+          if (isLast4Search) {
+            // Search by last 4 digits of check ID
+            const checkLast4 = c.id.replace(/\D/g, '').slice(-4);
+            match = checkLast4 === q;
+          } else {
+            // Regular search by check ID and guest name
+            const hay = `${c.id} ${c.guestName ?? ""}`.toLowerCase();
+            match = hay.includes(q);
+          }
+          
+          if (match) results.push({ check: c });
         }
       }
     }
+    
     return results;
   }
 

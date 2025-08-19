@@ -2,16 +2,45 @@
 
 import { useState, useEffect } from "react";
 import { useMissionStore } from "@/lib/missionStore";
+import { OrderDetailsModal } from "./OrderDetailsModal";
+import { Check, StaffMember } from "@/types/mission";
 
 export function Header() {
   const { view, setView, search, checksByServerId, closeCheck, servers, createNewCheck } = useMissionStore();
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
+  const [selectedCheck, setSelectedCheck] = useState<{ check: Check; server?: StaffMember } | null>(null);
   const results = q ? search(q) : [];
 
-  // Keyboard shortcut to close random check
+  // Map server names to avatar images
+  const getAvatarPath = (serverName: string): string => {
+    const nameMap: Record<string, string> = {
+      "Alex Kim": "/avatars/alex.png",
+      "Jamie Lee": "/avatars/jamie.png",
+      "Morgan Patel": "/avatars/morgan.png",
+      "Riley Jones": "/avatars/riley.png"
+    };
+    return nameMap[serverName] || "/avatars/newemployee.png";
+  };
+
+  // Keyboard shortcuts and escape key handling
   useEffect(() => {
     const handleKeyPress = (event: KeyboardEvent) => {
+      // Close modals with Escape key
+      if (event.key === 'Escape') {
+        if (selectedCheck) {
+          setSelectedCheck(null);
+          return;
+        }
+        if (open) {
+          setOpen(false);
+          return;
+        }
+      }
+      
+      // Don't process other shortcuts when search or modal is open
+      if (open || selectedCheck) return;
+      
       if (event.key.toLowerCase() === 'c' && !event.ctrlKey && !event.altKey && !event.metaKey) {
         // Get all open checks
         const allChecks = Object.values(checksByServerId).flat();
@@ -54,7 +83,7 @@ export function Header() {
     return () => {
       document.removeEventListener('keydown', handleKeyPress);
     };
-  }, [checksByServerId, closeCheck, servers, createNewCheck]);
+  }, [checksByServerId, closeCheck, servers, createNewCheck, open, selectedCheck]);
 
   // Add CSS animations for the modal
   useEffect(() => {
@@ -144,99 +173,324 @@ export function Header() {
         </div>
       </div>
 
-      {/* Enhanced Search Modal */}
+      {/* Full-Screen Morphing Search */}
       {open && (
-        <div className="fixed inset-0 z-30 bg-black/60 backdrop-blur-sm flex items-start justify-center p-6" onClick={() => setOpen(false)}>
-          <div className="w-full max-w-3xl rounded-2xl bg-white shadow-2xl border border-slate-200/50 overflow-hidden animate-in slide-in-from-top-2 fade-in-0 duration-300" onClick={(e) => e.stopPropagation()}>
-            {/* Premium Modal Header */}
-            <div className="bg-gradient-to-r from-slate-900 via-blue-900 to-slate-800 p-6 text-white">
-              <div className="flex items-center gap-4">
-                <div className="text-2xl">🔍</div>
-                <div>
-                  <h2 className="text-xl font-bold tracking-tight">Find a Check</h2>
-                  <p className="text-slate-300 text-sm mt-1">Search by check number, guest name, or table</p>
+        <div 
+          className="fixed inset-0 z-[9999] bg-white search-overlay"
+          onClick={(e) => {
+            // Close if clicking on the overlay background
+            if (e.target === e.currentTarget) {
+              setOpen(false);
+            }
+          }}
+        >
+          {/* Morphing Search Bar */}
+          <div className="search-bar-morph h-full">
+            {/* Close Button */}
+            <button 
+              onClick={(e) => {
+                e.stopPropagation();
+                setOpen(false);
+              }}
+              className="fixed top-8 right-8 w-12 h-12 rounded-full bg-black text-white hover:bg-gray-800 transition-all duration-300 flex items-center justify-center text-xl font-bold z-[10000] opacity-0 animate-fade-in shadow-lg"
+              style={{ animationDelay: '0.6s' }}
+            >
+              ×
+            </button>
+
+            {/* Search Input Container */}
+            <div className="flex flex-col h-full">
+              {/* Top Section with Search */}
+              <div className="flex-shrink-0 pt-20 pb-12 px-8">
+                <div className="max-w-4xl mx-auto">
+                  <div className="text-center mb-8 opacity-0 animate-fade-in" style={{ animationDelay: '0.5s' }}>
+                    <h1 className="text-4xl font-bold text-black mb-4">Find a Check</h1>
+                    <p className="text-gray-600 text-lg">Search by check number, guest name, table number, or last 4 digits</p>
+                  </div>
+                  
+                  {/* Large Search Input - This morphs from the original button */}
+                  <div className="relative search-input-container">
+                    <input 
+                      value={q} 
+                      onChange={(e) => setQ(e.target.value)} 
+                      placeholder="Search checks..." 
+                      className="w-full border-2 border-black rounded-none px-6 py-4 pr-14 text-xl text-black placeholder-gray-500 focus:border-[#FF4C00] focus:outline-none transition-all duration-300 bg-white"
+                      autoFocus
+                    />
+                    <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
+                      {q ? (
+                        <button
+                          onClick={() => setQ('')}
+                          className="w-6 h-6 flex items-center justify-center rounded-full bg-gray-200 hover:bg-gray-300 transition-colors duration-200"
+                          title="Clear search"
+                        >
+                          <span className="text-gray-600 text-sm font-bold">×</span>
+                        </button>
+                      ) : (
+                        <img src="/search.png" alt="search" className="w-6 h-6 opacity-50" />
+                      )}
+                    </div>
+                  </div>
                 </div>
-                <button 
-                  onClick={() => setOpen(false)} 
-                  className="ml-auto w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 transition-all duration-300 flex items-center justify-center text-white font-bold hover:scale-110"
-                >
-                  ×
-                </button>
               </div>
-            </div>
-            
-            {/* Enhanced Search Input */}
-            <div className="p-6 border-b border-slate-100">
-              <input 
-                value={q} 
-                onChange={(e) => setQ(e.target.value)} 
-                placeholder="Search checks..." 
-                className="w-full border-2 border-slate-200 rounded-xl px-4 py-3 text-lg focus:border-blue-500 focus:outline-none transition-all duration-300 focus:ring-4 focus:ring-blue-100" 
-                autoFocus
-              />
-            </div>
-            
-            {/* Enhanced Results */}
-            <div className="max-h-[60vh] overflow-auto divide-y divide-slate-100">
-              {results.map((r, index) => (
-                <div 
-                  key={r.check.id} 
-                  className="p-4 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 transition-all duration-300 cursor-pointer group"
-                  style={{ animationDelay: `${index * 50}ms` }}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <div className="font-bold text-slate-900 text-lg group-hover:text-blue-600 transition-colors duration-300">
-                        {r.check.id}
-                      </div>
-                      <div className="text-sm text-slate-600 mt-1 flex items-center gap-2">
-                        <span className="flex items-center gap-1">
-                          {r.server?.name ? "👤" : "📦"} {r.server?.name ?? "Pickup"}
-                        </span>
-                        <span className="w-1 h-1 bg-slate-400 rounded-full"></span>
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          r.check.serviceType === "dine-in" 
-                            ? "bg-blue-100 text-blue-700" 
-                            : "bg-orange-100 text-orange-700"
-                        }`}>
-                          {r.check.serviceType === "dine-in" ? "Dine-in" : "Pickup"}
-                        </span>
-                        {r.check.tableNumber && (
-                          <>
-                            <span className="w-1 h-1 bg-slate-400 rounded-full"></span>
-                            <span>Table #{r.check.tableNumber}</span>
-                          </>
-                        )}
+
+            {/* Content Area */}
+            <div className="flex-1 overflow-hidden">
+              {!q ? (
+                /* Suggested Content Columns */
+                <div className="max-w-7xl mx-auto px-8 h-full">
+                  <div className="grid grid-cols-3 gap-12 h-full">
+                                         {/* Recently Closed */}
+                     <div className="space-y-6">
+                       <h2 className="text-2xl font-bold text-black border-b-2 border-black pb-2">Recently Closed</h2>
+                       <div className="space-y-4">
+                         {Object.values(checksByServerId).flat().filter(check => check.status === "closed").slice(0, 8).map((check) => (
+                           <div key={check.id} className="cursor-pointer hover:bg-gray-50 p-3 -mx-3 transition-colors duration-200" onClick={() => setQ(check.id)}>
+                             <div className="font-semibold text-black">{check.id}</div>
+                             <div className="text-sm text-gray-600">{check.guestName} • ${check.amountUsd.toFixed(2)}</div>
+                           </div>
+                         ))}
+                       </div>
+                     </div>
+
+                    {/* Servers */}
+                    <div className="space-y-6">
+                      <h2 className="text-2xl font-bold text-black border-b-2 border-black pb-2">Servers</h2>
+                      <div className="space-y-4">
+                        {servers.map((server) => {
+                          const serverChecks = checksByServerId[server.id] || [];
+                          const openCount = serverChecks.filter(c => c.status === "open").length;
+                          return (
+                            <div key={server.id} className="cursor-pointer hover:bg-gray-50 p-3 -mx-3 transition-colors duration-200" onClick={() => setQ(server.name)}>
+                              <div className="font-semibold text-black">{server.name}</div>
+                              <div className="text-sm text-gray-600">{openCount} open checks • ${server.tipsUsd.toFixed(0)} tips</div>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
-                    <div className="text-right">
-                      <div className="text-xl font-bold text-slate-900 group-hover:text-blue-600 transition-colors duration-300">
-                        ${r.check.amountUsd.toFixed(2)}
-                      </div>
-                      <div className="text-sm text-slate-500 mt-1">
-                        {r.check.guests} guest{r.check.guests !== 1 ? 's' : ''}
+
+                    {/* Table Numbers */}
+                    <div className="space-y-6">
+                      <h2 className="text-2xl font-bold text-black border-b-2 border-black pb-2">Active Tables</h2>
+                      <div className="space-y-4">
+                        {Array.from(new Set(
+                          Object.values(checksByServerId).flat()
+                            .filter(c => c.status === "open" && c.tableNumber)
+                            .map(c => c.tableNumber)
+                            .sort((a, b) => (a || 0) - (b || 0))
+                        )).slice(0, 8).map((tableNum) => {
+                          const tableCheck = Object.values(checksByServerId).flat()
+                            .find(c => c.status === "open" && c.tableNumber === tableNum);
+                          return (
+                            <div key={tableNum} className="cursor-pointer hover:bg-gray-50 p-3 -mx-3 transition-colors duration-200" onClick={() => setQ(`Table ${tableNum}`)}>
+                              <div className="font-semibold text-black">Table {tableNum}</div>
+                              <div className="text-sm text-gray-600">{tableCheck?.guestName} • ${tableCheck?.amountUsd.toFixed(2) || '0.00'}</div>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                   </div>
                 </div>
-              ))}
-              {!results.length && q && (
-                <div className="p-8 text-center">
-                  <div className="text-4xl mb-3">🔍</div>
-                  <div className="text-lg font-medium text-slate-600 mb-2">No results found</div>
-                  <div className="text-sm text-slate-500">Try searching with different terms</div>
+              ) : (
+                /* Search Results */
+                <div className="max-w-4xl mx-auto px-8">
+                  <div className="mb-6">
+                    <h2 className="text-2xl font-bold text-black">Search Results</h2>
+                    <p className="text-gray-600">{results.length} result{results.length !== 1 ? 's' : ''} found</p>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    {results.map((r, index) => (
+                      <div 
+                        key={r.check.id} 
+                        className="border-2 border-gray-200 p-6 hover:border-black transition-all duration-300 cursor-pointer group bg-white"
+                        style={{ animationDelay: `${index * 100}ms` }}
+                        onClick={() => {
+                          setSelectedCheck({ check: r.check, server: r.server });
+                          setOpen(false);
+                        }}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <div className="font-bold text-black text-xl mb-2 group-hover:text-[#FF4C00] transition-colors duration-300">
+                              {r.check.id}
+                            </div>
+                                                         <div className="text-gray-600 mb-2 flex items-center gap-4">
+                               <span className="flex items-center gap-2">
+                                 <img src="/guest.png" alt="guest" className="w-4 h-4" />
+                                 {r.check.guestName}
+                               </span>
+                               {r.check.tableNumber && (
+                                 <span className="flex items-center gap-2">
+                                   <img src="/table.png" alt="table" className="w-4 h-4" />
+                                   Table {r.check.tableNumber}
+                                 </span>
+                               )}
+                               <span className="flex items-center gap-2">
+                                 <img src={r.server ? getAvatarPath(r.server.name) : "/takeout.png"} alt="server" className="w-4 h-4 rounded-full" />
+                                 {r.server?.name ?? "Takeout"}
+                               </span>
+                             </div>
+                                                         <div className="flex items-center gap-2">
+                               <span className={`px-3 py-1 rounded border text-sm font-medium ${
+                                 r.check.status === "open" ? "bg-[#F8F7F4] border-[#E8E6DD] text-[#1A1A1A]" :
+                                 r.check.status === "paid" ? "bg-[#F8F7F4] border-[#E8E6DD] text-[#C26E00]" :
+                                 "bg-[#F8F7F4] border-[#E8E6DD] text-[#6B6B6B]"
+                               }`}>
+                                 {r.check.status.charAt(0).toUpperCase() + r.check.status.slice(1)}
+                               </span>
+                               <span className={`px-3 py-1 rounded border text-sm font-medium ${
+                                 r.check.serviceType === "dine-in" 
+                                   ? "bg-[#F8F7F4] border-[#E8E6DD] text-[#1A1A1A]" 
+                                   : "bg-[#F8F7F4] border-[#E8E6DD] text-[#C26E00]"
+                               }`}>
+                                 {r.check.serviceType === "dine-in" ? "Dine-in" : "Takeout"}
+                               </span>
+                             </div>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-3xl font-bold text-black group-hover:text-[#FF4C00] transition-colors duration-300">
+                              ${r.check.amountUsd.toFixed(2)}
+                            </div>
+                            <div className="text-gray-500 mt-1">
+                              {r.check.guests} guest{r.check.guests !== 1 ? 's' : ''}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    
+                                         {!results.length && (
+                       <div className="text-center py-16">
+                         <div className="mb-4 flex justify-center">
+                           <img src="/search.png" alt="search" className="w-16 h-16 opacity-30" />
+                         </div>
+                         <div className="text-2xl font-bold text-black mb-2">No results found</div>
+                         <div className="text-gray-600">Try searching with different terms or check the suggestions above</div>
+                       </div>
+                     )}
+                  </div>
                 </div>
-              )}
-              {!q && (
-                <div className="p-8 text-center">
-                  <div className="text-4xl mb-3">✨</div>
-                  <div className="text-lg font-medium text-slate-600 mb-2">Ready to search</div>
-                  <div className="text-sm text-slate-500">Enter a check number, guest name, or table number above</div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
+                             )}
+             </div>
+           </div>
+           </div>
+
+           {/* Enhanced Custom Styles */}
+           <style jsx>{`
+             .search-overlay {
+               animation: overlayExpand 0.8s cubic-bezier(0.19, 1, 0.22, 1) forwards;
+               transform-origin: calc(100% - 120px) 20px;
+               overflow: hidden;
+             }
+             
+             .search-bar-morph {
+               animation: morphContainer 0.8s cubic-bezier(0.19, 1, 0.22, 1) forwards;
+               will-change: transform, opacity;
+               backface-visibility: hidden;
+             }
+             
+             .search-input-container {
+               animation: searchInputReveal 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+               animation-delay: 0.3s;
+               opacity: 0;
+               transform: scale(0.8) translateY(20px);
+               animation-fill-mode: both;
+               will-change: transform, opacity;
+             }
+             
+                           @keyframes overlayExpand {
+                0% {
+                  clip-path: circle(30px at calc(100% - 120px) 20px);
+                  background-color: rgba(255, 255, 255, 0.9);
+                }
+                30% {
+                  clip-path: circle(100px at calc(100% - 120px) 20px);
+                  background-color: rgba(255, 255, 255, 0.95);
+                }
+                100% {
+                  clip-path: circle(200vmax at calc(100% - 120px) 20px);
+                  background-color: rgba(255, 255, 255, 1);
+                }
+              }
+             
+             @keyframes morphContainer {
+               0% {
+                 transform: scale(0.05) translate(800px, -400px);
+                 opacity: 0.7;
+                 filter: blur(2px);
+               }
+               20% {
+                 transform: scale(0.2) translate(200px, -100px);
+                 opacity: 0.85;
+                 filter: blur(1px);
+               }
+               60% {
+                 transform: scale(0.8) translate(20px, -10px);
+                 opacity: 0.95;
+                 filter: blur(0.5px);
+               }
+               100% {
+                 transform: scale(1) translate(0, 0);
+                 opacity: 1;
+                 filter: blur(0);
+               }
+             }
+             
+             @keyframes searchInputReveal {
+               0% {
+                 opacity: 0;
+                 transform: scale(0.8) translateY(30px) rotateX(10deg);
+                 filter: blur(3px);
+               }
+               60% {
+                 opacity: 0.8;
+                 transform: scale(1.02) translateY(-5px) rotateX(-2deg);
+                 filter: blur(1px);
+               }
+               100% {
+                 opacity: 1;
+                 transform: scale(1) translateY(0) rotateX(0deg);
+                 filter: blur(0);
+               }
+             }
+             
+             @keyframes fade-in {
+               0% {
+                 opacity: 0;
+                 transform: translateY(20px) scale(0.9);
+                 filter: blur(2px);
+               }
+               100% {
+                 opacity: 1;
+                 transform: translateY(0) scale(1);
+                 filter: blur(0);
+               }
+             }
+             
+             .animate-fade-in {
+               animation: fade-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+               will-change: transform, opacity;
+             }
+             
+             /* Performance optimizations */
+             .search-overlay * {
+               transform-style: preserve-3d;
+             }
+           `}</style>
+         </div>
+       )}
+
+      {/* Order Details Modal */}
+      {selectedCheck && (
+        <OrderDetailsModal
+          check={selectedCheck.check}
+          server={selectedCheck.server}
+          isOpen={!!selectedCheck}
+          onClose={() => setSelectedCheck(null)}
+        />
       )}
     </div>
   );
