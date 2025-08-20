@@ -98,7 +98,7 @@ export function BOH() {
             {/* Today's Metrics Card */}
             <div className="shrink-0">
               <div className="bg-white rounded-lg border border-slate-200 p-4 w-80">
-                <h4 className="font-semibold text-slate-900 mb-3">Today's Metrics</h4>
+                <h4 className="font-semibold text-slate-900 mb-3">Today&apos;s Metrics</h4>
                 <div className="space-y-3 text-sm">
                   <div className="flex justify-between">
                     <span className="text-slate-600">Avg Prep Time:</span>
