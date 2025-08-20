@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
 import { useMissionStore } from "@/lib/missionStore";
 import type { Check, CheckStatus, ServiceType, PickupOrder } from "@/types/mission";
 import { ServerAvatar } from "./ServerAvatar";

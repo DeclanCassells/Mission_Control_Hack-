@@ -214,31 +214,128 @@ export function BOH() {
 
 // BOH Staff Card - Matching FOH Server Card Design
 function BOHStaffCard({ member, totalClockedInStaff }: { member: StaffMember; totalClockedInStaff: number }) {
+  // Map BOH staff names to avatar images
+  const getAvatarPath = (staffName: string): string => {
+    const nameMap: Record<string, string> = {
+      "Maria Lopez": "/avatars/chef1.png",
+      "James Wu": "/avatars/chef2.png",
+      "Priya Singh": "/avatars/dishwasher1.png"
+    };
+    return nameMap[staffName] || "/avatars/newemployee.png";
+  };
+
+  // Determine status and styling based on overtime
+  const getStaffStatus = () => {
+    if (member.overtimeMinutes > 0) return "Overtime";
+    if (member.overtimeMinutes < 0) return "Approaching Overtime";
+    return "Clocked in";
+  };
+
+  const getBorderColor = () => {
+    if (member.overtimeMinutes > 0) return "border-red-500 border-pulse-red";
+    if (member.overtimeMinutes < 0) return "border-orange-500 border-pulse-orange";
+    return "border-[#C2BBA3]";
+  };
+
+  const getStatusColor = () => {
+    if (member.overtimeMinutes > 0) return "text-red-600";
+    if (member.overtimeMinutes < 0) return "text-orange-600";
+    return "text-[#C26E00]";
+  };
+
   return (
-    <div className="shrink-0">
-      <div className="bg-white rounded-lg border border-slate-200 p-4 w-64">
-        {/* Header with avatar and name */}
-        <div className="flex items-center gap-3 mb-3">
-          <ServerAvatar name={member.name} size="40" useAI={false} avatarPath={`/avatars/${member.role.toLowerCase()}1.png`} />
-          <div>
-            <div className="font-bold text-[#1A1A1A]">{member.name}</div>
+    <div className="w-80 shrink-0">
+      <div className={`rounded-lg border ${getBorderColor()} bg-white ${member.overtimeMinutes === 0 ? 'shadow-sm' : ''} p-3`}>
+        
+        {/* Custom CSS for border pulse with glow effect */}
+        <style jsx>{`
+          @keyframes border-pulse-red {
+            0%, 100% {
+              border-color: #ef4444;
+              box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+            }
+            50% {
+              border-color: #b91c1c;
+              box-shadow: 0 0 0 4px rgba(185, 28, 28, 0.4), 0 0 20px rgba(239, 68, 68, 0.6);
+            }
+          }
+          
+          @keyframes border-pulse-orange {
+            0%, 100% {
+              border-color: #f97316;
+              box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.7);
+            }
+            50% {
+              border-color: #c2410c;
+              box-shadow: 0 0 0 4px rgba(194, 65, 12, 0.4), 0 0 20px rgba(249, 115, 22, 0.6);
+            }
+          }
+          
+          :global(.border-pulse-red) {
+            animation: border-pulse-red 2s ease-in-out infinite;
+            position: relative;
+          }
+          
+          :global(.border-pulse-orange) {
+            animation: border-pulse-orange 2s ease-in-out infinite;
+            position: relative;
+          }
+        `}</style>
+
+        {/* Header with avatar, name, and status */}
+        <div className="flex items-center gap-2 mb-2">
+          <ServerAvatar name={member.name} size="40" useAI={false} avatarPath={getAvatarPath(member.name)} />
+          <div className="flex-1 min-w-0">
+            <div className="font-bold text-[#1A1A1A] text-sm">{member.name}</div>
             <div className="text-xs text-[#6B6B6B] flex items-center gap-1">
-              <span>{member.role}</span>
+              <span className="capitalize">{member.role}</span>
               <span className="w-1 h-1 bg-[#C26E00] rounded-full"></span>
-              <span className="text-[#C26E00] font-medium">On Duty</span>
+              <span className={`${getStatusColor()} font-medium`}>{getStaffStatus()}</span>
             </div>
           </div>
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-2 gap-2 text-center">
-          <div className="bg-[#F8F7F4] rounded border border-[#E8E6DD] p-2">
-            <div className="font-bold text-[#C26E00]">${member.hourlyWageUsd}/hr</div>
-            <div className="text-[10px] text-[#6B6B6B] font-medium">Wage</div>
+        {/* Clock info - matching FOH design */}
+        <div className="mb-2 p-2 bg-[#F8F7F4] rounded border border-[#E8E6DD]">
+          {/* Top row: Total hours and scheduled time */}
+          <div className="flex items-center justify-between text-xs mb-1">
+            <div className="flex items-center gap-1">
+              <span className="text-[#6B6B6B] font-medium">
+                {Math.floor((Date.now() - member.clockInAt) / (1000 * 60 * 60))}h
+              </span>
+            </div>
+            <div className="flex items-center gap-1">
+              <img src="/clock.png" alt="clock" className="w-3 h-3" />
+              <span className="font-medium text-[#1A1A1A]">
+                {new Date(member.clockInAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}-{member.scheduledClockOutAt ? new Date(member.scheduledClockOutAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) : "5:00 PM"}
+              </span>
+            </div>
           </div>
-          <div className="bg-[#F8F7F4] rounded border border-[#E8E6DD] p-2">
-            <div className="font-bold text-[#C26E00]">{totalClockedInStaff}</div>
-            <div className="text-[10px] text-[#6B6B6B] font-medium">Staff On Duty</div>
+          
+          {/* Bottom row: Status and hourly wage */}
+          <div className="flex items-center justify-between text-xs">
+            <div className="flex items-center gap-1">
+              <span className="text-[#6B6B6B] font-medium">Staff On Duty</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <span className="text-[#1A1A1A] font-medium">{totalClockedInStaff}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Performance metrics - simplified for BOH */}
+        <div className="grid grid-cols-2 gap-2 text-xs">
+          <div className="text-center p-2 bg-[#F8F7F4] rounded border border-[#E8E6DD]">
+            <div className="font-bold text-[#1A1A1A]">
+              {member.overtimeMinutes > 0 ? `+${Math.floor(member.overtimeMinutes / 60)}h` : "0h"}
+            </div>
+            <div className="text-[#6B6B6B]">Overtime</div>
+          </div>
+          <div className="text-center p-2 bg-[#F8F7F4] rounded border border-[#E8E6DD]">
+            <div className="font-bold text-[#1A1A1A]">
+              ${(member.hourlyWageUsd * Math.floor((Date.now() - member.clockInAt) / (1000 * 60 * 60))).toFixed(2)}
+            </div>
+            <div className="text-[#6B6B6B]">Today</div>
           </div>
         </div>
       </div>
