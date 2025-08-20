@@ -109,7 +109,7 @@ function ServerColumn({ serverId }: { serverId: string }) {
   };
 
   return (
-    <div className="w-80 shrink-0">
+    <div className="w-80 shrink-0 bg-gray-50/80 rounded-xl p-4">
       <div className={`rounded-lg border ${getBorderColor()} bg-white ${server.overtimeMinutes === 0 ? 'shadow-sm' : ''} p-3 mb-3`}>
         
         {/* Custom CSS for border pulse with glow effect */}
