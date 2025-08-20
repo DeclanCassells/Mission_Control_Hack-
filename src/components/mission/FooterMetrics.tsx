@@ -50,6 +50,7 @@ function AnimatedCounter({ value, label, noRightBorder = false }: { value: numbe
   );
 }
 
+
 export function FooterMetrics() {
   const { metrics, servers, bohStaff } = useMissionStore();
   const canDeposit = metrics.availableForInstantDepositUsd > 0;
@@ -330,7 +331,7 @@ export function FooterMetrics() {
               <AnimatedCounter value={metrics.voids} label="Voids" />
               <AnimatedCounter value={metrics.refunds} label="Refunds" />
               <AnimatedCounter value={metrics.discounts} label="Discounts" />
-              <AnimatedCounter value={metrics.overtimeMinutes} label="Overtime" />
+              <AnimatedCounter value={`${metrics.overtimeMinutes}h`} label="Overtime" />
               <AnimatedCounter value={`$${metrics.averageCheckSizeUsd.toFixed(2)}`} label="Avg Check" />
               <AnimatedCounter value={metrics.clockedInStaffCount} label="Clocked-in" noRightBorder />
             </div>

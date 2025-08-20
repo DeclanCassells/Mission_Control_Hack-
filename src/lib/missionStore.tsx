@@ -175,18 +175,27 @@ function initialStaff(): { servers: StaffMember[]; boh: StaffMember[] } {
   return { servers, boh };
 }
 
-function computeMetrics(servers: StaffMember[], checksByServerId: Record<string, Check[]>, laborCostUsd: number): MissionMetrics {
+function computeMetrics(servers: StaffMember[], boh: StaffMember[], checksByServerId: Record<string, Check[]>, laborCostUsd: number): MissionMetrics {
   const allChecks = Object.values(checksByServerId).flat();
   const closed = allChecks.filter((c) => c.status === "closed");
   const netSalesUsd = dollars(closed.reduce((acc, c) => acc + c.amountUsd, 0));
-  const totalChecks = closed.length;
-  const guests = closed.reduce((acc, c) => acc + c.guests, 0);
-  const voids = servers.reduce((acc, s) => acc + s.voids, 0);
-  const discounts = servers.reduce((acc, s) => acc + s.discounts, 0);
-  const overtimeMinutes = servers.reduce((acc, s) => acc + s.overtimeMinutes, 0);
   
-  // Calculate average check size from ALL checks (open, paid, and closed)
-  const averageCheckSizeUsd = allChecks.length > 0 ? dollars(allChecks.reduce((acc, c) => acc + c.amountUsd, 0) / allChecks.length) : 0;
+  // 1. Checks should be a count of total checks (not just closed)
+  const totalChecks = allChecks.length;
+  
+  // 2. Guests is a count of total guests from all order cards (not just closed)
+  const guests = allChecks.reduce((acc, c) => acc + c.guests, 0);
+  
+  // 3. Voids is a count of voids from the server cards (already correct)
+  const voids = servers.reduce((acc, s) => acc + s.voids, 0);
+  
+  const discounts = servers.reduce((acc, s) => acc + s.discounts, 0);
+  
+  // 4. Overtime is a count of hours based on servers in overtime (only positive overtime, converted to hours)
+  const overtimeHours = servers.reduce((acc, s) => acc + Math.max(0, s.overtimeMinutes), 0) / 60;
+  
+  // 5. Average check should be the average value of closed checks only
+  const averageCheckSizeUsd = closed.length > 0 ? dollars(closed.reduce((acc, c) => acc + c.amountUsd, 0) / closed.length) : 0;
 
   return {
     netSalesUsd,
@@ -197,9 +206,10 @@ function computeMetrics(servers: StaffMember[], checksByServerId: Record<string,
     voids,
     refunds: 0,
     discounts,
-    overtimeMinutes,
+    overtimeMinutes: Math.round(overtimeHours), // Display as hours (rounded)
     averageCheckSizeUsd,
-    clockedInStaffCount: servers.length,
+    // 6. Clocked in is a count of FOH and BOH staff on page
+    clockedInStaffCount: servers.length + boh.length,
   };
 }
 
@@ -445,7 +455,7 @@ export function MissionStoreProvider({ children }: { children: React.ReactNode }
     return results;
   }
 
-  const metrics = useMemo(() => computeMetrics(servers, checksByServerId, laborCostUsd), [servers, checksByServerId, laborCostUsd]);
+  const metrics = useMemo(() => computeMetrics(servers, boh, checksByServerId, laborCostUsd), [servers, boh, checksByServerId, laborCostUsd]);
 
   const value: MissionStoreValue = {
     servers,

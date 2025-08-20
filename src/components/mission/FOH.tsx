@@ -541,9 +541,22 @@ function PickupColumn() {
 
       {/* Total Quote Time Display */}
       <div className="bg-gray-100 rounded-lg p-2 mb-2">
-        <div className="flex items-center justify-between">
-          <div className="font-bold text-black">Total quote time = {quoteTime + delayTime} min</div>
-          <img src="/Info.png" alt="info" className="w-5 h-5" />
+        <div className="flex items-center justify-center">
+          <div 
+            className={sourceSans.className}
+            style={{
+              color: 'var(--Text-text-color-default, var(--text-color-text-default, #252525))',
+              textAlign: 'center',
+              fontFeatureSettings: '"liga" off, "clig" off',
+              fontSize: '16px',
+              fontStyle: 'normal',
+              fontWeight: '600',
+              lineHeight: '24px',
+              letterSpacing: '0.2px'
+            }}
+          >
+            Total quote time = {quoteTime + delayTime} min
+          </div>
         </div>
       </div>
 

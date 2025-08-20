@@ -389,11 +389,11 @@ export function Header() {
 
            {/* Enhanced Custom Styles */}
            <style jsx>{`
-             .search-overlay {
-               animation: overlayExpand 0.8s cubic-bezier(0.19, 1, 0.22, 1) forwards;
-               transform-origin: calc(100% - 120px) 20px;
-               overflow: hidden;
-             }
+                         .search-overlay {
+              animation: overlayExpand 0.8s cubic-bezier(0.19, 1, 0.22, 1) forwards;
+              transform-origin: calc(100% - 200px) 36px;
+              overflow: hidden;
+            }
              
              .search-bar-morph {
                animation: morphContainer 0.8s cubic-bezier(0.19, 1, 0.22, 1) forwards;
@@ -412,15 +412,15 @@ export function Header() {
              
                            @keyframes overlayExpand {
                 0% {
-                  clip-path: circle(30px at calc(100% - 120px) 20px);
+                  clip-path: circle(15px at calc(100% - 200px) 36px);
                   background-color: rgba(255, 255, 255, 0.9);
                 }
                 30% {
-                  clip-path: circle(100px at calc(100% - 120px) 20px);
+                  clip-path: circle(80px at calc(100% - 200px) 36px);
                   background-color: rgba(255, 255, 255, 0.95);
                 }
                 100% {
-                  clip-path: circle(200vmax at calc(100% - 120px) 20px);
+                  clip-path: circle(200vmax at calc(100% - 200px) 36px);
                   background-color: rgba(255, 255, 255, 1);
                 }
               }
