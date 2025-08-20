@@ -247,7 +247,10 @@ export function Header() {
                          {Object.values(checksByServerId).flat().filter(check => check.status === "closed").slice(0, 8).map((check) => (
                            <div key={check.id} className="cursor-pointer hover:bg-gray-50 p-3 -mx-3 transition-colors duration-200" onClick={() => setQ(check.id)}>
                              <div className="font-semibold text-black">{check.id}</div>
-                             <div className="text-sm text-gray-600">{check.guestName} • ${check.amountUsd.toFixed(2)}</div>
+                             <div className="text-sm text-gray-600 flex items-center gap-2">
+                               <img src="/guest.png" alt="guest" className="w-3 h-3" />
+                               {check.guestName} • ${check.amountUsd.toFixed(2)}
+                             </div>
                            </div>
                          ))}
                        </div>
@@ -262,7 +265,10 @@ export function Header() {
                           const openCount = serverChecks.filter(c => c.status === "open").length;
                           return (
                             <div key={server.id} className="cursor-pointer hover:bg-gray-50 p-3 -mx-3 transition-colors duration-200" onClick={() => setQ(server.name)}>
-                              <div className="font-semibold text-black">{server.name}</div>
+                              <div className="font-semibold text-black flex items-center gap-2">
+                                <img src={getAvatarPath(server.name)} alt="server" className="w-4 h-4 rounded-full" />
+                                {server.name}
+                              </div>
                               <div className="text-sm text-gray-600">{openCount} open checks • ${server.tipsUsd.toFixed(0)} tips</div>
                             </div>
                           );
@@ -284,7 +290,10 @@ export function Header() {
                             .find(c => c.status === "open" && c.tableNumber === tableNum);
                           return (
                             <div key={tableNum} className="cursor-pointer hover:bg-gray-50 p-3 -mx-3 transition-colors duration-200" onClick={() => setQ(`Table ${tableNum}`)}>
-                              <div className="font-semibold text-black">Table {tableNum}</div>
+                              <div className="font-semibold text-black flex items-center gap-2">
+                                <img src="/table.png" alt="table" className="w-4 h-4" />
+                                Table {tableNum}
+                              </div>
                               <div className="text-sm text-gray-600">{tableCheck?.guestName} • ${tableCheck?.amountUsd.toFixed(2) || '0.00'}</div>
                             </div>
                           );
