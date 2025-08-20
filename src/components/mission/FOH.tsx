@@ -109,7 +109,7 @@ function ServerColumn({ serverId }: { serverId: string }) {
   };
 
   return (
-    <div className="w-80 shrink-0 bg-gray-50/80 rounded-xl p-4">
+    <div className="w-80 shrink-0">
       <div className={`rounded-lg border ${getBorderColor()} bg-white ${server.overtimeMinutes === 0 ? 'shadow-sm' : ''} p-3 mb-3`}>
         
         {/* Custom CSS for border pulse with glow effect */}
@@ -151,7 +151,7 @@ function ServerColumn({ serverId }: { serverId: string }) {
           <ServerAvatar name={server.name} size="40" useAI={false} avatarPath={getAvatarPath(server.name)} />
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-              <div className="font-bold text-[#1A1A1A] text-sm">{server.name}</div>
+            <div className="font-bold text-[#1A1A1A] text-sm">{server.name}</div>
               <button
                 onClick={toggleServerCardsExpanded}
                 className="p-1 hover:bg-gray-100 rounded transition-colors duration-200"
@@ -215,31 +215,31 @@ function ServerColumn({ serverId }: { serverId: string }) {
         <div className={`overflow-hidden transition-all duration-300 ease-in-out ${
           serverCardsExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
         }`}>
-          {/* Key metrics - compressed */}
-          <div className="grid grid-cols-2 gap-2 mb-2">
-            <div className="text-center p-2 bg-[#F8F7F4] rounded border border-[#E8E6DD]">
-              <div className="font-bold text-[#C26E00] text-sm">${server.tipsUsd.toFixed(0)}</div>
-              <div className="text-[#6B6B6B] text-[10px] font-medium">Tips</div>
-            </div>
-            <div className="text-center p-2 bg-[#F8F7F4] rounded border border-[#E8E6DD]">
-              <div className="font-bold text-[#C26E00] text-sm">${server.slph.toFixed(2)}</div>
-              <div className="text-[#6B6B6B] text-[10px] font-medium">SPLH</div>
-            </div>
+        {/* Key metrics - compressed */}
+        <div className="grid grid-cols-2 gap-2 mb-2">
+          <div className="text-center p-2 bg-[#F8F7F4] rounded border border-[#E8E6DD]">
+            <div className="font-bold text-[#C26E00] text-sm">${server.tipsUsd.toFixed(0)}</div>
+            <div className="text-[#6B6B6B] text-[10px] font-medium">Tips</div>
           </div>
+          <div className="text-center p-2 bg-[#F8F7F4] rounded border border-[#E8E6DD]">
+            <div className="font-bold text-[#C26E00] text-sm">${server.slph.toFixed(2)}</div>
+            <div className="text-[#6B6B6B] text-[10px] font-medium">SPLH</div>
+          </div>
+        </div>
 
-          {/* Secondary metrics - compressed */}
-          <div className="grid grid-cols-3 gap-1 text-[10px]">
-            <div className="text-center p-1.5 bg-[#F8F7F4] rounded border border-[#E8E6DD]">
-              <div className="font-semibold text-[#1A1A1A]">${(server.hourlyWageUsd * 4).toFixed(2)}</div>
-              <div className="text-[#6B6B6B]">Wages</div>
-            </div>
-            <div className="text-center p-1.5 bg-[#F8F7F4] rounded border border-[#E8E6DD]">
-              <div className="font-semibold text-[#1A1A1A]">{server.voids}</div>
-              <div className="text-[#6B6B6B]">Voids</div>
-            </div>
-            <div className="text-center p-1.5 bg-[#F8F7F4] rounded border border-[#E8E6DD]">
-              <div className="font-semibold text-[#1A1A1A]">{server.discounts}</div>
-              <div className="text-[#6B6B6B]">Discounts</div>
+        {/* Secondary metrics - compressed */}
+        <div className="grid grid-cols-3 gap-1 text-[10px]">
+          <div className="text-center p-1.5 bg-[#F8F7F4] rounded border border-[#E8E6DD]">
+            <div className="font-semibold text-[#1A1A1A]">${(server.hourlyWageUsd * 4).toFixed(2)}</div>
+            <div className="text-[#6B6B6B]">Wages</div>
+          </div>
+          <div className="text-center p-1.5 bg-[#F8F7F4] rounded border border-[#E8E6DD]">
+            <div className="font-semibold text-[#1A1A1A]">{server.voids}</div>
+            <div className="text-[#6B6B6B]">Voids</div>
+          </div>
+          <div className="text-center p-1.5 bg-[#F8F7F4] rounded border border-[#E8E6DD]">
+            <div className="font-semibold text-[#1A1A1A]">{server.discounts}</div>
+            <div className="text-[#6B6B6B]">Discounts</div>
             </div>
           </div>
         </div>
