@@ -44,7 +44,7 @@ function ServerColumns() {
 }
 
 function ServerColumn({ serverId }: { serverId: string }) {
-  const { servers, checksByServerId, serverCardsExpanded, toggleServerCardsExpanded } = useMissionStore();
+  const { servers, bohStaff, checksByServerId, serverCardsExpanded, toggleServerCardsExpanded } = useMissionStore();
   
   const server = servers.find((s) => s.id === serverId)!;
   const checks = checksByServerId[serverId] ?? [];
@@ -57,6 +57,11 @@ function ServerColumn({ serverId }: { serverId: string }) {
     }
     return [o, p, c];
   }, [checks]);
+
+  // Calculate total clocked-in staff
+  const totalClockedInStaff = useMemo(() => {
+    return servers.length + bohStaff.length;
+  }, [servers.length, bohStaff.length]);
 
   const [activeTab, setActiveTab] = useState<CheckStatus>("open");
   const current = activeTab === "open" ? open : activeTab === "paid" ? paid : closed;
@@ -201,12 +206,11 @@ function ServerColumn({ serverId }: { serverId: string }) {
           {/* Bottom row: Status and break time */}
           <div className="flex items-center justify-between text-xs">
             <div className="flex items-center gap-1">
-              <span className="text-[#6B6B6B] font-medium">Clocked In</span>
+              <span className="text-[#6B6B6B] font-medium">Staff On Duty</span>
             </div>
             <div className="flex items-center gap-1">
-              {/* Break icon - using the actual brreak.png file */}
               <img src="/brreak.png" alt="break" className="w-3 h-3" />
-              <span className="font-medium text-[#1A1A1A]">{breakMinutes}m break</span>
+              <span className="font-medium text-[#1A1A1A]">{totalClockedInStaff} staff</span>
             </div>
           </div>
         </div>

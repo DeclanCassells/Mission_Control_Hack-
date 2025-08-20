@@ -148,13 +148,10 @@ export function Header() {
         <div className="flex items-center gap-3">
           <div className="text-[#FF4C00] font-bold text-xl tracking-tight">toast</div>
           <div className="text-slate-300 text-lg font-medium tracking-wide">Mission Control</div>
-          
-          {/* Keyboard shortcut feedback */}
-          {/* Removed showShortcutFeedback and feedbackMessage as per edit hint */}
         </div>
-        
-        {/* Enhanced Controls */}
-        <div className="ml-auto flex items-center gap-4">
+
+        {/* Search Button - Centered */}
+        <div className="flex-1 flex justify-center">
           <button 
             onClick={() => setOpen(true)} 
             className="flex items-center gap-3 px-4 py-2.5 bg-white rounded-full transition-all duration-200 hover:shadow-sm text-gray-600 hover:text-gray-700 min-w-[200px]"
@@ -162,40 +159,40 @@ export function Header() {
             <img src="/search.png" alt="search" className="w-4 h-4" />
             <span className="text-sm font-medium">Find a check</span>
           </button>
-          
-          {/* Premium Toggle Switch */}
-          <div className="flex items-center gap-3 text-sm font-medium">
-            <span className={`transition-colors duration-300 ${view === "foh" ? "text-white font-bold" : "text-slate-400"}`}>
-              Front of House
-            </span>
-            <label className="inline-flex items-center cursor-pointer">
-              <input 
-                type="checkbox" 
-                className="sr-only peer" 
-                checked={view === "boh"} 
-                onChange={(e) => setView(e.target.checked ? "boh" : "foh")} 
-              />
-              <div className="relative w-14 h-7 bg-slate-700 rounded-full toggle-roll overflow-hidden">
-                {/* Background fill that wipes across */}
-                <div className={`absolute inset-0 bg-gradient-to-r from-amber-500 to-orange-500 toggle-wipe ${
-                  view === "boh" ? 'translate-x-0' : '-translate-x-full'
-                }`} />
-                
-                {/* Toggle handle */}
-                <div className={`absolute top-0.5 w-6 h-6 bg-white rounded-full shadow-lg toggle-handle transform ${
-                  view === "boh" ? 'translate-x-7' : 'translate-x-0.5'
-                }`} />
-                
-                {/* Inner circle for the rolling effect */}
-                <div className={`absolute top-1 w-4 h-4 bg-white rounded-full toggle-handle transform ${
-                  view === "boh" ? 'translate-x-8' : 'translate-x-1'
-                }`} />
-              </div>
-            </label>
-            <span className={`transition-colors duration-300 ${view === "boh" ? "text-white font-bold" : "text-slate-400"}`}>
-              Back of House
-            </span>
-          </div>
+        </div>
+        
+        {/* Toggle Switch - Right aligned */}
+        <div className="flex items-center gap-3 text-sm font-medium">
+          <span className={`transition-colors duration-300 ${view === "foh" ? "text-white font-bold" : "text-slate-400"}`}>
+            Front of House
+          </span>
+          <label className="inline-flex items-center cursor-pointer">
+            <input 
+              type="checkbox" 
+              className="sr-only peer" 
+              checked={view === "boh"} 
+              onChange={(e) => setView(e.target.checked ? "boh" : "foh")} 
+            />
+            <div className="relative w-14 h-7 bg-slate-700 rounded-full toggle-roll overflow-hidden">
+              {/* Background fill that wipes across */}
+              <div className={`absolute inset-0 bg-gradient-to-r from-amber-500 to-orange-500 toggle-wipe ${
+                view === "boh" ? 'translate-x-0' : '-translate-x-full'
+              }`} />
+              
+              {/* Toggle handle */}
+              <div className={`absolute top-0.5 w-6 h-6 bg-white rounded-full shadow-lg toggle-handle transform ${
+                view === "boh" ? 'translate-x-7' : 'translate-x-0.5'
+              }`} />
+              
+              {/* Inner circle for the rolling effect */}
+              <div className={`absolute top-1 w-4 h-4 bg-white rounded-full toggle-handle transform ${
+                view === "boh" ? 'translate-x-8' : 'translate-x-1'
+              }`} />
+            </div>
+          </label>
+          <span className={`transition-colors duration-300 ${view === "boh" ? "text-white font-bold" : "text-slate-400"}`}>
+            Back of House
+          </span>
         </div>
       </div>
 
