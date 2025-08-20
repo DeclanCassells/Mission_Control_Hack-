@@ -132,7 +132,25 @@ export function BOH() {
           <div className="p-6">
             {/* Kitchen Header */}
             <div className="mb-6">
-              <div className="flex items-center justify-end mb-4">
+              <div className="flex items-center justify-between mb-4">
+                              {/* Station Filter */}
+              <div className="flex gap-1 p-1 rounded-xl border border-gray-200 bg-gray-50 shadow-sm">
+                {["all", "hot", "cold", "grill", "fryer"].map((station) => (
+                  <button
+                    key={station}
+                    onClick={() => setSelectedStation(station)}
+                    className={`flex-1 px-4 py-2 text-xs rounded-lg border transition-all duration-200 ${
+                      selectedStation === station
+                        ? "bg-white border-gray-300 shadow-sm text-gray-900 font-bold"
+                        : "bg-transparent border-transparent hover:bg-white hover:border-gray-200 text-gray-600 hover:text-gray-900 font-medium"
+                    }`}
+                  >
+                    {station.charAt(0).toUpperCase() + station.slice(1)}
+                  </button>
+                ))}
+              </div>
+                
+                {/* Order Counters */}
                 <div className="flex items-center gap-2">
                   <span className="text-sm text-slate-500">Active Orders:</span>
                   <span className="bg-red-100 text-red-800 px-2 py-1 rounded-full text-sm font-bold">
@@ -144,29 +162,12 @@ export function BOH() {
                   </span>
                 </div>
               </div>
-              
-              {/* Station Filter */}
-              <div className="flex gap-2">
-                {["all", "hot", "cold", "grill", "fryer"].map((station) => (
-                  <button
-                    key={station}
-                    onClick={() => setSelectedStation(station)}
-                    className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
-                      selectedStation === station
-                        ? "bg-blue-600 text-white"
-                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                    }`}
-                  >
-                    {station.charAt(0).toUpperCase() + station.slice(1)}
-                  </button>
-                ))}
-              </div>
             </div>
 
             {/* Tickets Grid */}
-            <div className="flex gap-4">
+            <div className="flex gap-8">
               {/* Ready Tickets - Left Column */}
-              <div className="w-80 shrink-0">
+              <div className="w-72 shrink-0">
                 <div className="text-sm font-semibold text-gray-500 mb-2">Ready Orders</div>
                 <div className="space-y-4">
                   {visibleReadyTickets.map((ticket) => (
@@ -180,14 +181,14 @@ export function BOH() {
                 </div>
               </div>
               
-              {/* In Progress Tickets - Masonry Layout */}
+              {/* In Progress Tickets - Grid Layout */}
               <div className="flex-1">
                 <div className="text-sm font-semibold text-gray-500 mb-2">Open Orders</div>
-                <div className="columns-1 md:columns-2 xl:columns-3 gap-4 space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                   {inProg
                     .sort((a, b) => a.openedAt - b.openedAt) // Sort by oldest first
                     .map((ticket) => (
-                      <div key={ticket.id} className="break-inside-avoid mb-4">
+                      <div key={ticket.id}>
                         <EnhancedTicketCard
                           ticket={ticket}
                           urgency={getTicketUrgency(ticket)}
@@ -396,7 +397,7 @@ function EnhancedTicketCard({
   }, {} as Record<string, LineItem[]>);
 
   return (
-    <div className="w-80 shrink-0">
+    <div className="w-72 shrink-0">
       <div className="rounded-t-lg overflow-hidden">
         {/* Header - Colored background with ticket info */}
         <div className={`${getHeaderColor()} text-white p-3`}>
@@ -416,9 +417,9 @@ function EnhancedTicketCard({
         <div className="bg-white p-3">
           {/* Categorized Items */}
           {Object.entries(categorizedItems).map(([category, items]) => (
-            <div key={category} className="mb-3 last:mb-0">
+            <div key={category} className="mb-2 last:mb-0">
               {/* Category Header */}
-              <div className="bg-gray-100 px-2 py-1 mb-2 rounded">
+              <div className="bg-gray-100 px-2 py-1 mb-1 rounded">
                 <div className="text-xs font-bold text-gray-800 uppercase tracking-wide">
                   {getCategoryIcon(category)} {category}
                 </div>

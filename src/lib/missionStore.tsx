@@ -19,6 +19,8 @@ interface MissionStoreValue {
   metrics: MissionMetrics;
   view: "foh" | "boh";
   setView: (view: "foh" | "boh") => void;
+  serverCardsExpanded: boolean;
+  toggleServerCardsExpanded: () => void;
   closeCheck: (checkId: string) => void;
   fulfillTicket: (ticketId: string) => void;
   addPickupOrder: (order: PickupOrder) => void;
@@ -221,6 +223,7 @@ export function MissionStoreProvider({ children }: { children: React.ReactNode }
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [laborCostUsd, setLaborCostUsd] = useState<number>(0);
   const [view, setView] = useState<"foh" | "boh">("foh");
+  const [serverCardsExpanded, setServerCardsExpanded] = useState<boolean>(true);
 
   // Initialize on client only to avoid hydration mismatch
   useEffect(() => {
@@ -466,6 +469,8 @@ export function MissionStoreProvider({ children }: { children: React.ReactNode }
     metrics,
     view,
     setView,
+    serverCardsExpanded,
+    toggleServerCardsExpanded: () => setServerCardsExpanded(prev => !prev),
     closeCheck,
     fulfillTicket,
     addPickupOrder,

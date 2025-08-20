@@ -189,7 +189,7 @@ export function ScrollingMessages() {
       <div className="w-full">
         <div className="animate-scroll whitespace-nowrap">
           {messages.map((msg, index) => (
-            <span key={msg.id} className="inline-block text-white text-lg font-medium mr-16">
+            <span key={msg.id} className="inline-block text-white text-base font-medium mr-16">
               {msg.message}
               {index < messages.length - 1 && (
                 <span className="mx-8 text-orange-400">•</span>
@@ -197,7 +197,7 @@ export function ScrollingMessages() {
             </span>
           ))}
           {messages.length === 0 && (
-            <span className="text-white text-lg font-medium">
+            <span className="text-white text-base font-medium">
               Welcome to Toast Mission Control - Real-time restaurant events will appear here
             </span>
           )}

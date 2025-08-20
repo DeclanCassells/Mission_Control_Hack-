@@ -101,6 +101,19 @@ export function Header() {
         animation: fadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
       }
       
+      /* Enhanced toggle animations */
+      .toggle-roll {
+        transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      
+      .toggle-wipe {
+        transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      
+      .toggle-handle {
+        transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      
       @keyframes slideInFromTop {
         from {
           transform: translateY(-20px);
@@ -162,8 +175,21 @@ export function Header() {
                 checked={view === "boh"} 
                 onChange={(e) => setView(e.target.checked ? "boh" : "foh")} 
               />
-              <div className="w-11 h-6 bg-slate-700 rounded-full peer-checked:bg-gradient-to-r peer-checked:from-amber-500 peer-checked:to-orange-500 relative transition-all duration-300 peer-checked:shadow-lg">
-                <div className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-all duration-300 peer-checked:translate-x-5 shadow-md" />
+              <div className="relative w-14 h-7 bg-slate-700 rounded-full toggle-roll overflow-hidden">
+                {/* Background fill that wipes across */}
+                <div className={`absolute inset-0 bg-gradient-to-r from-amber-500 to-orange-500 toggle-wipe ${
+                  view === "boh" ? 'translate-x-0' : '-translate-x-full'
+                }`} />
+                
+                {/* Toggle handle */}
+                <div className={`absolute top-0.5 w-6 h-6 bg-white rounded-full shadow-lg toggle-handle transform ${
+                  view === "boh" ? 'translate-x-7' : 'translate-x-0.5'
+                }`} />
+                
+                {/* Inner circle for the rolling effect */}
+                <div className={`absolute top-1 w-4 h-4 bg-white rounded-full toggle-handle transform ${
+                  view === "boh" ? 'translate-x-8' : 'translate-x-1'
+                }`} />
               </div>
             </label>
             <span className={`transition-colors duration-300 ${view === "boh" ? "text-white font-bold" : "text-slate-400"}`}>

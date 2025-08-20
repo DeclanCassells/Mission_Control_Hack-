@@ -14,7 +14,13 @@ export function FOH() {
 
   return (
     <div className="flex">
-      <div className="flex-1 overflow-x-auto">
+      <div className="flex-1 overflow-x-auto" style={{
+        backgroundImage: 'url(/tile.png)',
+        backgroundRepeat: 'no-repeat',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundAttachment: 'fixed'
+      }}>
         <div className="flex gap-4 px-4 pb-24">
           <ServerColumns />
         </div>
@@ -38,7 +44,7 @@ function ServerColumns() {
 }
 
 function ServerColumn({ serverId }: { serverId: string }) {
-  const { servers, checksByServerId } = useMissionStore();
+  const { servers, checksByServerId, serverCardsExpanded, toggleServerCardsExpanded } = useMissionStore();
   
   const server = servers.find((s) => s.id === serverId)!;
   const checks = checksByServerId[serverId] ?? [];
@@ -144,7 +150,30 @@ function ServerColumn({ serverId }: { serverId: string }) {
         <div className="flex items-center gap-2 mb-2">
           <ServerAvatar name={server.name} size="40" useAI={false} avatarPath={getAvatarPath(server.name)} />
           <div className="flex-1 min-w-0">
-            <div className="font-bold text-[#1A1A1A] text-sm">{server.name}</div>
+            <div className="flex items-center gap-2">
+              <div className="font-bold text-[#1A1A1A] text-sm">{server.name}</div>
+              <button
+                onClick={toggleServerCardsExpanded}
+                className="p-1 hover:bg-gray-100 rounded transition-colors duration-200"
+                title={serverCardsExpanded ? "Collapse all server cards" : "Expand all server cards"}
+              >
+                <svg
+                  className={`w-4 h-4 text-gray-500 transition-transform duration-200 ${
+                    serverCardsExpanded ? 'rotate-180' : ''
+                  }`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              </button>
+            </div>
             <div className="text-xs text-[#6B6B6B] flex items-center gap-1">
               <span>Server</span>
               <span className="w-1 h-1 bg-[#C26E00] rounded-full"></span>
@@ -182,38 +211,43 @@ function ServerColumn({ serverId }: { serverId: string }) {
           </div>
         </div>
 
-        {/* Key metrics - compressed */}
-        <div className="grid grid-cols-2 gap-2 mb-2">
-          <div className="text-center p-2 bg-[#F8F7F4] rounded border border-[#E8E6DD]">
-            <div className="font-bold text-[#C26E00] text-sm">${server.tipsUsd.toFixed(0)}</div>
-            <div className="text-[#6B6B6B] text-[10px] font-medium">Tips</div>
+        {/* Collapsible content - everything below clocked-in status */}
+        <div className={`overflow-hidden transition-all duration-300 ease-in-out ${
+          serverCardsExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+        }`}>
+          {/* Key metrics - compressed */}
+          <div className="grid grid-cols-2 gap-2 mb-2">
+            <div className="text-center p-2 bg-[#F8F7F4] rounded border border-[#E8E6DD]">
+              <div className="font-bold text-[#C26E00] text-sm">${server.tipsUsd.toFixed(0)}</div>
+              <div className="text-[#6B6B6B] text-[10px] font-medium">Tips</div>
+            </div>
+            <div className="text-center p-2 bg-[#F8F7F4] rounded border border-[#E8E6DD]">
+              <div className="font-bold text-[#C26E00] text-sm">${server.slph.toFixed(2)}</div>
+              <div className="text-[#6B6B6B] text-[10px] font-medium">SPLH</div>
+            </div>
           </div>
-          <div className="text-center p-2 bg-[#F8F7F4] rounded border border-[#E8E6DD]">
-            <div className="font-bold text-[#C26E00] text-sm">${server.slph.toFixed(2)}</div>
-            <div className="text-[#6B6B6B] text-[10px] font-medium">SPLH</div>
-          </div>
-        </div>
 
-        {/* Secondary metrics - compressed */}
-        <div className="grid grid-cols-3 gap-1 text-[10px]">
-          <div className="text-center p-1.5 bg-[#F8F7F4] rounded border border-[#E8E6DD]">
-            <div className="font-semibold text-[#1A1A1A]">${(server.hourlyWageUsd * 4).toFixed(2)}</div>
-            <div className="text-[#6B6B6B]">Wages</div>
-          </div>
-          <div className="text-center p-1.5 bg-[#F8F7F4] rounded border border-[#E8E6DD]">
-            <div className="font-semibold text-[#1A1A1A]">{server.voids}</div>
-            <div className="text-[#6B6B6B]">Voids</div>
-          </div>
-          <div className="text-center p-1.5 bg-[#F8F7F4] rounded border border-[#E8E6DD]">
-            <div className="font-semibold text-[#1A1A1A]">{server.discounts}</div>
-            <div className="text-[#6B6B6B]">Discounts</div>
+          {/* Secondary metrics - compressed */}
+          <div className="grid grid-cols-3 gap-1 text-[10px]">
+            <div className="text-center p-1.5 bg-[#F8F7F4] rounded border border-[#E8E6DD]">
+              <div className="font-semibold text-[#1A1A1A]">${(server.hourlyWageUsd * 4).toFixed(2)}</div>
+              <div className="text-[#6B6B6B]">Wages</div>
+            </div>
+            <div className="text-center p-1.5 bg-[#F8F7F4] rounded border border-[#E8E6DD]">
+              <div className="font-semibold text-[#1A1A1A]">{server.voids}</div>
+              <div className="text-[#6B6B6B]">Voids</div>
+            </div>
+            <div className="text-center p-1.5 bg-[#F8F7F4] rounded border border-[#E8E6DD]">
+              <div className="font-semibold text-[#1A1A1A]">{server.discounts}</div>
+              <div className="text-[#6B6B6B]">Discounts</div>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="sticky top-12 z-10 bg-white mb-4">
-        <div className="flex gap-1 p-1 rounded-xl border border-gray-200 bg-gray-50 shadow-sm">
+      <div className="sticky top-12 z-10 mb-4">
+        <div className="flex gap-1 p-1 rounded-xl border border-gray-200 bg-gray-50">
           <TabButton label={`Open (${open.length})`} active={activeTab === "open"} onClick={() => setActiveTab("open")} />
           <TabButton label={`Paid (${paid.length})`} active={activeTab === "paid"} onClick={() => setActiveTab("paid")} />
           <TabButton label={`Closed (${closed.length})`} active={activeTab === "closed"} onClick={() => setActiveTab("closed")} />
