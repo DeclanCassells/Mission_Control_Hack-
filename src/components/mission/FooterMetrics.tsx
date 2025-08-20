@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useMissionStore } from "@/lib/missionStore";
 import type { StaffMember } from "@/types/mission";
 
@@ -6,35 +6,18 @@ import type { StaffMember } from "@/types/mission";
 function AnimatedCounter({ value, label, noRightBorder = false }: { value: number | string; label: string; noRightBorder?: boolean }) {
   const [displayValue, setDisplayValue] = useState(value);
   const [isAnimating, setIsAnimating] = useState(false);
-  const [simulatedValue, setSimulatedValue] = useState(value);
 
-  // Simulate number changes every 20 seconds
+  // Update display value when actual value changes
   useEffect(() => {
-    const interval = setInterval(() => {
-      if (typeof value === 'number') {
-        setSimulatedValue(prev => {
-          if (typeof prev === 'number') {
-            const newValue = prev + Math.floor(Math.random() * 5) + 1; // Random increment 1-5
-            return newValue;
-          }
-          return prev;
-        });
-      }
-    }, 20000); // 20 seconds
-
-    return () => clearInterval(interval);
-  }, [value]);
-
-  useEffect(() => {
-    if (displayValue !== simulatedValue) {
+    if (displayValue !== value) {
       setIsAnimating(true);
       const timer = setTimeout(() => {
-        setDisplayValue(simulatedValue);
+        setDisplayValue(value);
         setIsAnimating(false);
-      }, 200);
+      }, 300);
       return () => clearTimeout(timer);
     }
-  }, [simulatedValue, displayValue]);
+  }, [value, displayValue]);
 
   return (
     <div className={`text-center p-2 ${noRightBorder ? '' : 'border-r border-white'}`}>
@@ -332,7 +315,7 @@ export function FooterMetrics() {
               <AnimatedCounter value={metrics.refunds} label="Refunds" />
               <AnimatedCounter value={metrics.discounts} label="Discounts" />
               <AnimatedCounter value={`${metrics.overtimeMinutes}h`} label="Overtime" />
-              <AnimatedCounter value={`$${metrics.averageCheckSizeUsd.toFixed(2)}`} label="Avg Check" />
+              <AnimatedCounter value={`$${Math.round(metrics.averageCheckSizeUsd)}`} label="Avg Check" />
               <AnimatedCounter value={metrics.clockedInStaffCount} label="Clocked-in" noRightBorder />
             </div>
           </div>

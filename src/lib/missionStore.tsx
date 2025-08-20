@@ -196,8 +196,8 @@ function computeMetrics(servers: StaffMember[], boh: StaffMember[], checksByServ
   // 4. Overtime is a count of hours based on servers in overtime (only positive overtime, converted to hours)
   const overtimeHours = servers.reduce((acc, s) => acc + Math.max(0, s.overtimeMinutes), 0) / 60;
   
-  // 5. Average check should be the average value of closed checks only
-  const averageCheckSizeUsd = closed.length > 0 ? dollars(closed.reduce((acc, c) => acc + c.amountUsd, 0) / closed.length) : 0;
+  // 5. Average check should be the average value of all checks
+  const averageCheckSizeUsd = allChecks.length > 0 ? dollars(allChecks.reduce((acc, c) => acc + c.amountUsd, 0) / allChecks.length) : 0;
 
   return {
     netSalesUsd,

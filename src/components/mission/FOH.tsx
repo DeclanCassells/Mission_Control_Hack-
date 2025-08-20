@@ -44,7 +44,7 @@ function ServerColumns() {
 }
 
 function ServerColumn({ serverId }: { serverId: string }) {
-  const { servers, bohStaff, checksByServerId, serverCardsExpanded, toggleServerCardsExpanded } = useMissionStore();
+  const { servers, checksByServerId, serverCardsExpanded, toggleServerCardsExpanded } = useMissionStore();
   
   const server = servers.find((s) => s.id === serverId)!;
   const checks = checksByServerId[serverId] ?? [];
@@ -57,11 +57,6 @@ function ServerColumn({ serverId }: { serverId: string }) {
     }
     return [o, p, c];
   }, [checks]);
-
-  // Calculate total clocked-in staff
-  const totalClockedInStaff = useMemo(() => {
-    return servers.length + bohStaff.length;
-  }, [servers.length, bohStaff.length]);
 
   const [activeTab, setActiveTab] = useState<CheckStatus>("open");
   const current = activeTab === "open" ? open : activeTab === "paid" ? paid : closed;
@@ -98,12 +93,6 @@ function ServerColumn({ serverId }: { serverId: string }) {
     const borderClass = server.overtimeMinutes > 0 ? "border-red-500 border-pulse-red" 
                       : server.overtimeMinutes < 0 ? "border-orange-500 border-pulse-orange"
                       : "border-[#C2BBA3]";
-    
-    // Debug logging
-    if (server.overtimeMinutes !== 0) {
-      console.log(`${server.name}: overtimeMinutes=${server.overtimeMinutes}, borderClass="${borderClass}"`);
-    }
-    
     return borderClass;
   };
 
@@ -179,11 +168,7 @@ function ServerColumn({ serverId }: { serverId: string }) {
                 </svg>
               </button>
             </div>
-            <div className="text-xs text-[#6B6B6B] flex items-center gap-1">
-              <span>Server</span>
-              <span className="w-1 h-1 bg-[#C26E00] rounded-full"></span>
-              <span className={`${getStatusColor()} font-medium`}>{getServerStatus()}</span>
-            </div>
+            <div className="text-[#6B6B6B] text-xs font-medium">{getServerStatus()}</div>
           </div>
         </div>
 
@@ -198,7 +183,7 @@ function ServerColumn({ serverId }: { serverId: string }) {
               {/* Clock icon - using the actual clock.png file */}
               <img src="/clock.png" alt="clock" className="w-3 h-3" />
               <span className="font-medium text-[#1A1A1A]">
-                {new Date(server.clockInAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}-{server.scheduledClockOutAt ? new Date(server.scheduledClockOutAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) : "5:00 PM"}
+                {new Date(server.clockInAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}-5:00 PM
               </span>
             </div>
           </div>
@@ -210,7 +195,7 @@ function ServerColumn({ serverId }: { serverId: string }) {
             </div>
             <div className="flex items-center gap-1">
               <img src="/brreak.png" alt="break" className="w-3 h-3" />
-              <span className="font-medium text-[#1A1A1A]">{totalClockedInStaff} staff</span>
+              <span className="font-medium text-[#1A1A1A]">{breakMinutes}min</span>
             </div>
           </div>
         </div>
