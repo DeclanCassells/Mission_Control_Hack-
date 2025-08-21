@@ -324,14 +324,12 @@ export function FooterMetrics() {
         {/* Right 6 columns - Primary Metrics */}
         <div className="col-span-6">
           <div className="grid grid-cols-3 gap-4">
-            <Metric label="Net Sales" value={`$${metrics.netSalesUsd.toLocaleString(undefined, { minimumFractionDigits: 2 })}`} />
-            <Metric label="Labor Cost" value={`$${metrics.laborCostUsd.toLocaleString(undefined, { minimumFractionDigits: 2 })}`} />
             <div className="flex flex-col">
-              <div className="text-slate-300 text-xs font-medium tracking-wide uppercase mb-2">Available to deposit</div>
+              <div className="text-slate-300 text-xs font-medium tracking-wide uppercase mb-2">Net Sales</div>
               <div className="flex items-center gap-3">
                 <div className="bg-[#C2BBA3] rounded-lg p-3 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 w-fit">
                   <div className="text-slate-900 font-bold text-2xl tracking-tight leading-tight">
-                    ${metrics.availableForInstantDepositUsd.toFixed(2)}
+                    ${metrics.netSalesUsd.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                   </div>
                 </div>
                 <button
@@ -346,6 +344,11 @@ export function FooterMetrics() {
                 </button>
               </div>
             </div>
+            <Metric label="Labor Cost" value={`$${metrics.laborCostUsd.toLocaleString(undefined, { minimumFractionDigits: 2 })}`} />
+            <Metric 
+              label="Labor %" 
+              value={`${metrics.netSalesUsd > 0 ? ((metrics.laborCostUsd / metrics.netSalesUsd) * 100).toFixed(1) : '0.0'}%`} 
+            />
           </div>
         </div>
       </div>

@@ -221,7 +221,7 @@ export function MissionStoreProvider({ children }: { children: React.ReactNode }
   const [checksByServerId, setChecksByServerId] = useState<Record<string, Check[]>>({});
   const [pickup, setPickup] = useState<PickupOrder[]>([]);
   const [tickets, setTickets] = useState<Ticket[]>([]);
-  const [laborCostUsd, setLaborCostUsd] = useState<number>(0);
+  const [laborCostUsd, setLaborCostUsd] = useState<number>(340);
   const [view, setView] = useState<"foh" | "boh">("foh");
   const [serverCardsExpanded, setServerCardsExpanded] = useState<boolean>(true);
 
@@ -241,14 +241,14 @@ export function MissionStoreProvider({ children }: { children: React.ReactNode }
     setTickets(all.map(createTicketFromCheck));
   }, []);
 
-  // Labor ticks every minute
+  // Labor ticks every 20 seconds
   useEffect(() => {
     if (!servers.length && !boh.length) return;
     const tick = () => {
-      const perMinute = servers.reduce((acc, s) => acc + s.hourlyWageUsd / 60, 0) + boh.reduce((acc, s) => acc + s.hourlyWageUsd / 60, 0);
-      setLaborCostUsd((v) => dollars(v + perMinute));
+      const per20Seconds = (servers.reduce((acc, s) => acc + s.hourlyWageUsd / 60, 0) + boh.reduce((acc, s) => acc + s.hourlyWageUsd / 60, 0)) / 3;
+      setLaborCostUsd((v) => dollars(v + per20Seconds));
     };
-    const id = setInterval(tick, 60_000);
+    const id = setInterval(tick, 20_000);
     return () => clearInterval(id);
   }, [servers, boh]);
 
