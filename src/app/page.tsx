@@ -41,7 +41,7 @@ export default function Page() {
         </div>
       </div>
       
-      <div className="hidden md:block h-screen flex flex-col bg-gray-50 relative overflow-hidden">
+      <div className="hidden md:flex h-screen flex-col bg-gray-50 relative overflow-hidden">
         {/* Noise texture background */}
         <div className="absolute inset-0 opacity-[0.08] pointer-events-none">
           <div className="absolute inset-0" style={{
@@ -51,9 +51,7 @@ export default function Page() {
         </div>
         <Header />
         <MainView />
-        <div className="hidden md:block">
-          <ScrollingMessages />
-        </div>
+        <ScrollingMessages />
         <FooterMetrics />
         <WelcomeModal />
       </div>
