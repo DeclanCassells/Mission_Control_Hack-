@@ -51,7 +51,9 @@ export default function Page() {
         </div>
         <Header />
         <MainView />
-        <ScrollingMessages />
+        <div className="hidden md:block">
+          <ScrollingMessages />
+        </div>
         <FooterMetrics />
         <WelcomeModal />
       </div>
