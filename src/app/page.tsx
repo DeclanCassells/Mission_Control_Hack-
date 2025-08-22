@@ -13,7 +13,35 @@ export const dynamic = "force-dynamic";
 export default function Page() {
   return (
     <MissionStoreProvider>
-      <div className="h-screen flex flex-col bg-gray-50 relative overflow-hidden">
+      {/* Mobile Warning Message */}
+      <div className="block md:hidden fixed inset-0 z-50 bg-black text-white flex items-center justify-center p-6">
+        <div className="text-center max-w-sm">
+          <div className="mb-6">
+            <img 
+              src="/Toast_logo.png" 
+              alt="Toast" 
+              className="h-12 mx-auto mb-4"
+            />
+          </div>
+          <h1 className="text-2xl font-bold mb-4">Toast Mission Control</h1>
+          <div className="mb-6">
+            <svg className="w-16 h-16 mx-auto text-orange-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+          </div>
+          <p className="text-gray-300 mb-2 leading-relaxed">
+            This app is designed for larger screens.
+          </p>
+          <p className="text-gray-300 mb-6 leading-relaxed">
+            Please switch to a laptop or tablet device for the best experience.
+          </p>
+          <div className="text-sm text-gray-400">
+            Hack by Declan Cassells
+          </div>
+        </div>
+      </div>
+      
+      <div className="hidden md:block h-screen flex flex-col bg-gray-50 relative overflow-hidden">
         {/* Noise texture background */}
         <div className="absolute inset-0 opacity-[0.08] pointer-events-none">
           <div className="absolute inset-0" style={{
