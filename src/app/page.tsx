@@ -58,23 +58,146 @@ function WelcomeModal() {
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-6">
       <div className="w-full max-w-2xl rounded-2xl bg-white shadow-2xl border border-[#C2BBA3] overflow-hidden">
-        {/* Header */}
-        <div className="bg-black px-6 py-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-white text-xl font-bold">Welcome to Toast Mission Control</h2>
-            <button
-              onClick={() => setIsOpen(false)}
-              className="text-white hover:text-gray-200 transition-colors"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
+        {/* Toast Hackathon Header */}
+        <div className="relative px-8 py-6 text-center overflow-hidden">
+          {/* Animated Gradient Background */}
+          <div className="absolute inset-0 bg-gradient-to-br from-orange-500 via-red-500 to-pink-500 animate-gradient-x"></div>
+          
+          {/* Matrix Code Effect */}
+          <div className="absolute inset-0 opacity-20 pointer-events-none">
+            <div className="matrix-container">
+              {Array.from({ length: 20 }, (_, i) => (
+                <div key={i} className="matrix-column" style={{ left: `${i * 5}%`, animationDelay: `${i * 0.1}s` }}>
+                  <div className="matrix-letter"></div>
+                </div>
+              ))}
+            </div>
           </div>
+          
+          <div className="relative z-10">
+          <button
+            onClick={() => setIsOpen(false)}
+            className="absolute top-4 right-4 text-white hover:text-gray-200 transition-colors z-10"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+          
+          {/* Toast Logo */}
+          <div className="mb-4">
+            <img 
+              src="/Toast_logo.png" 
+              alt="Toast" 
+              className="h-10 mx-auto"
+            />
+          </div>
+          
+          {/* Main Title */}
+          <div className="mb-3">
+            <h1 className="text-white text-6xl font-black tracking-tight leading-none">
+              HACKATHON
+            </h1>
+          </div>
+          
+          {/* Divider Line */}
+          <div className="flex items-center justify-center">
+            <div className="h-px bg-white/40 flex-1 max-w-24"></div>
+            <div className="px-4 text-white text-lg font-bold tracking-widest">
+              ACCELERATE WITH AI
+            </div>
+            <div className="h-px bg-white/40 flex-1 max-w-24"></div>
+          </div>
+          
+
+          </div>
+          
+          {/* Custom CSS for animated gradient and matrix effect */}
+          <style jsx>{`
+            @property --timer {
+              syntax: '<integer>';
+              inherits: false;
+              initial-value: 1;
+            }
+            
+            @keyframes gradient-x {
+              0%, 100% {
+                background-size: 200% 200%;
+                background-position: left center;
+              }
+              50% {
+                background-size: 200% 200%;
+                background-position: right center;
+              }
+            }
+            
+            @keyframes animate-matrix {
+              to {
+                --timer: 26;
+              }
+            }
+            
+            @keyframes matrix-fall {
+              0% {
+                transform: translateY(-100vh);
+                opacity: 0;
+              }
+              10%, 90% {
+                opacity: 1;
+              }
+              100% {
+                transform: translateY(100vh);
+                opacity: 0;
+              }
+            }
+            
+            .animate-gradient-x {
+              background: linear-gradient(-45deg, #f97316, #ef4444, #ec4899, #f97316);
+              background-size: 400% 400%;
+              animation: gradient-x 4s ease infinite;
+            }
+            
+            .matrix-container {
+              position: absolute;
+              top: 0;
+              left: 0;
+              width: 100%;
+              height: 100%;
+            }
+            
+            .matrix-column {
+              position: absolute;
+              top: 0;
+              width: 20px;
+              height: 100%;
+              font-family: 'Courier New', monospace;
+              font-size: 14px;
+              color: rgba(255, 255, 255, 0.8);
+              animation: matrix-fall 6s linear infinite;
+            }
+            
+            .matrix-letter {
+              counter-reset: timer-1 calc(var(--timer) + 1) timer-2 calc(var(--timer) + 3) timer-3 calc(var(--timer) + 5) timer-4 calc(var(--timer) + 7) timer-5 calc(var(--timer) + 9);
+              animation: animate-matrix 4s linear infinite;
+              writing-mode: vertical-rl;
+              text-orientation: upright;
+              line-height: 1.2;
+            }
+            
+            .matrix-letter:before {
+              content: counter(timer-1, lower-alpha) counter(timer-2, lower-alpha) counter(timer-3, lower-alpha) counter(timer-4, lower-alpha) counter(timer-5, lower-alpha);
+            }
+          `}</style>
         </div>
 
         {/* Content */}
         <div className="px-6 py-6 space-y-6">
+          {/* Welcome Message */}
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-[#1A1A1A] mb-2">Welcome to Toast Mission Control</h2>
+            <p className="text-[#6B6B6B]">Hack by Declan Cassells</p>
+          </div>
+
           {/* Mocked Data Notice */}
           <div className="bg-[#F8F7F4] border border-[#E8E6DD] rounded-lg p-4">
             <div className="flex items-start gap-3">
@@ -146,6 +269,14 @@ function WelcomeModal() {
               <li className="flex items-center gap-2">
                 <span className="w-2 h-2 bg-black rounded-full"></span>
                 Live metrics and performance tracking
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="w-2 h-2 bg-black rounded-full"></span>
+                BOH and FOH views for complete restaurant visibility
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="w-2 h-2 bg-black rounded-full"></span>
+                Check search functionality to quickly find orders
               </li>
             </ul>
           </div>

@@ -170,11 +170,11 @@ export function BOH() {
             </div>
 
             {/* Tickets Grid */}
-            <div className="flex gap-8">
+            <div className="flex gap-3">
               {/* Ready Tickets - Left Column */}
               <div className="w-72 shrink-0">
                 <div className="text-sm font-semibold text-gray-500 mb-2">Ready Orders</div>
-                <div className="space-y-4">
+                <div className="space-y-2">
                   {visibleReadyTickets.map((ticket) => (
                     <ReadyTicketCard
                       key={ticket.id}
@@ -189,18 +189,17 @@ export function BOH() {
               {/* In Progress Tickets - Grid Layout */}
               <div className="flex-1">
                 <div className="text-sm font-semibold text-gray-500 mb-2">Open Orders</div>
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-2">
                   {inProg
                     .sort((a, b) => a.openedAt - b.openedAt) // Sort by oldest first
                     .map((ticket) => (
-                      <div key={ticket.id}>
-                        <EnhancedTicketCard
-                          ticket={ticket}
-                          urgency={getTicketUrgency(ticket)}
-                          timeElapsed={getTimeElapsed(ticket)}
-                          onMarkReady={() => fulfillTicket(ticket.id)}
-                        />
-                      </div>
+                      <EnhancedTicketCard
+                        key={ticket.id}
+                        ticket={ticket}
+                        urgency={getTicketUrgency(ticket)}
+                        timeElapsed={getTimeElapsed(ticket)}
+                        onMarkReady={() => fulfillTicket(ticket.id)}
+                      />
                     ))}
                 </div>
               </div>
@@ -214,6 +213,48 @@ export function BOH() {
 
 // BOH Staff Card - Matching FOH Server Card Design
 function BOHStaffCard({ member, totalClockedInStaff }: { member: StaffMember; totalClockedInStaff: number }) {
+  
+  // Generate random 8-hour shift for BOH staff (same logic as FOH)
+  const getShiftTimes = useMemo(() => {
+    const hash = member.id.split('').reduce((a, b) => {
+      a = ((a << 5) - a) + b.charCodeAt(0);
+      return a & a;
+    }, 0);
+    
+    // Possible start times: 11:00, 11:30, 12:00, 12:30, 1:00, 1:30, 2:00, 2:30, 3:00, 3:30, 4:00
+    const startOptions = [
+      { hour: 11, minute: 0 },   // 11:00 AM
+      { hour: 11, minute: 30 },  // 11:30 AM
+      { hour: 12, minute: 0 },   // 12:00 PM
+      { hour: 12, minute: 30 },  // 12:30 PM
+      { hour: 13, minute: 0 },   // 1:00 PM
+      { hour: 13, minute: 30 },  // 1:30 PM
+      { hour: 14, minute: 0 },   // 2:00 PM
+      { hour: 14, minute: 30 },  // 2:30 PM
+      { hour: 15, minute: 0 },   // 3:00 PM
+      { hour: 15, minute: 30 },  // 3:30 PM
+      { hour: 16, minute: 0 },   // 4:00 PM
+    ];
+    
+    const startTime = startOptions[Math.abs(hash) % startOptions.length];
+    
+    // Calculate end time (8 hours later)
+    const endHour = startTime.hour + 8;
+    const endMinute = startTime.minute;
+    
+    // Format times
+    const formatTime = (hour: number, minute: number) => {
+      const hour12 = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
+      const ampm = hour >= 12 ? 'PM' : 'AM';
+      const minuteStr = minute === 0 ? ':00' : `:${minute}`;
+      return `${hour12}${minuteStr} ${ampm}`;
+    };
+    
+    return {
+      start: formatTime(startTime.hour, startTime.minute),
+      end: formatTime(endHour, endMinute)
+    };
+  }, [member.id]);
   // Map BOH staff names to avatar images
   const getAvatarPath = (staffName: string): string => {
     const nameMap: Record<string, string> = {
@@ -226,9 +267,14 @@ function BOHStaffCard({ member, totalClockedInStaff }: { member: StaffMember; to
 
   // Determine status and styling based on overtime
   const getStaffStatus = () => {
-    if (member.overtimeMinutes > 0) return "Overtime";
+    if (member.overtimeMinutes > 0) return "OVERTIME";
     if (member.overtimeMinutes < 0) return "Approaching Overtime";
     return "Clocked in";
+  };
+
+  const getStatusStyle = () => {
+    if (member.overtimeMinutes > 0) return { color: '#C62828' };
+    return {};
   };
 
   const getBorderColor = () => {
@@ -277,7 +323,7 @@ function BOHStaffCard({ member, totalClockedInStaff }: { member: StaffMember; to
           }
           
           :global(.border-pulse-orange) {
-            animation: border-pulse-orange 2s ease-in-out infinite;
+            animation: border-pulse-orange 4s ease-in-out infinite;
             position: relative;
           }
         `}</style>
@@ -290,7 +336,7 @@ function BOHStaffCard({ member, totalClockedInStaff }: { member: StaffMember; to
             <div className="text-xs text-[#6B6B6B] flex items-center gap-1">
               <span className="capitalize">{member.role}</span>
               <span className="w-1 h-1 bg-[#C26E00] rounded-full"></span>
-              <span className={`${getStatusColor()} font-medium`}>{getStaffStatus()}</span>
+              <span className="font-medium" style={member.overtimeMinutes > 0 ? getStatusStyle() : { color: '#6B6B6B' }}>{getStaffStatus()}</span>
             </div>
           </div>
         </div>
@@ -307,7 +353,7 @@ function BOHStaffCard({ member, totalClockedInStaff }: { member: StaffMember; to
             <div className="flex items-center gap-1">
               <img src="/clock.png" alt="clock" className="w-3 h-3" />
               <span className="font-medium text-[#1A1A1A]">
-                {new Date(member.clockInAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}-{member.scheduledClockOutAt ? new Date(member.scheduledClockOutAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) : "5:00 PM"}
+                {getShiftTimes.start}-{getShiftTimes.end}
               </span>
             </div>
           </div>
@@ -315,10 +361,10 @@ function BOHStaffCard({ member, totalClockedInStaff }: { member: StaffMember; to
           {/* Bottom row: Status and hourly wage */}
           <div className="flex items-center justify-between text-xs">
             <div className="flex items-center gap-1">
-              <span className="text-[#6B6B6B] font-medium">Staff On Duty</span>
+              <span className="text-[#6B6B6B] font-medium">${member.hourlyWageUsd}/hr</span>
             </div>
             <div className="flex items-center gap-1">
-              <span className="text-[#1A1A1A] font-medium">{totalClockedInStaff}</span>
+              <span className="text-[#1A1A1A] font-medium">{getStaffStatus()}</span>
             </div>
           </div>
         </div>

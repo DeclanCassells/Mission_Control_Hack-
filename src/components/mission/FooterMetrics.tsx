@@ -2,6 +2,46 @@ import { useState, useEffect, useMemo } from "react";
 import { useMissionStore } from "@/lib/missionStore";
 import type { StaffMember } from "@/types/mission";
 
+// Sparkline Component
+function Sparkline({ data, width = 60, height = 20, className = "", color = "#10b981", gradientId }: { 
+  data: {timestamp: number, value: number}[]; 
+  width?: number; 
+  height?: number; 
+  className?: string;
+  color?: string;
+  gradientId: string;
+}) {
+  if (data.length < 2) return null;
+  
+  const values = data.map(d => d.value);
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const range = max - min || 1; // Prevent division by zero
+  
+  // Create SVG path
+  const pathData = data.map((d, i) => {
+    const x = (i / (data.length - 1)) * width;
+    const y = height - ((d.value - min) / range) * height;
+    return `${i === 0 ? 'M' : 'L'} ${x} ${y}`;
+  }).join(' ');
+  
+  // Create filled area path
+  const areaData = `M 0 ${height} L ${pathData.substring(2)} L ${width} ${height} Z`;
+  
+  return (
+    <svg width={width} height={height} className={`${className}`}>
+      <defs>
+        <linearGradient id={gradientId} x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor={color} stopOpacity="0.3" />
+          <stop offset="100%" stopColor={color} stopOpacity="0.05" />
+        </linearGradient>
+      </defs>
+      <path d={areaData} fill={`url(#${gradientId})`} />
+      <path d={pathData} stroke={color} strokeWidth="1.5" fill="none" />
+    </svg>
+  );
+}
+
 // Animated Flip Counter Component
 function AnimatedCounter({ value, label, noRightBorder = false }: { value: number | string; label: string; noRightBorder?: boolean }) {
   const [displayValue, setDisplayValue] = useState(value);
@@ -35,7 +75,7 @@ function AnimatedCounter({ value, label, noRightBorder = false }: { value: numbe
 
 
 export function FooterMetrics() {
-  const { metrics, servers, bohStaff } = useMissionStore();
+  const { metrics, servers, bohStaff, laborCostHistory, netSalesHistory, laborPercentHistory } = useMissionStore();
   const canDeposit = metrics.availableForInstantDepositUsd > 0;
 
   function Metric({ label, value }: { label: string; value: string }) {
@@ -323,18 +363,23 @@ export function FooterMetrics() {
 
         {/* Right 6 columns - Primary Metrics */}
         <div className="col-span-6">
-          <div className="grid grid-cols-3 gap-4">
-            <div className="flex flex-col">
+          <div className="grid grid-cols-3 2xl:grid-cols-12 gap-4">
+            <div className="col-span-1 2xl:col-span-5 flex flex-col">
               <div className="text-slate-300 text-xs font-medium tracking-wide uppercase mb-2">Net Sales</div>
               <div className="flex items-center gap-3">
-                <div className="bg-[#C2BBA3] rounded-lg p-3 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 w-fit">
-                  <div className="text-slate-900 font-bold text-2xl tracking-tight leading-tight">
-                    ${metrics.netSalesUsd.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                <div className="bg-[#C2BBA3] rounded-lg p-3 shadow-lg w-fit">
+                  <div className="flex items-center gap-3">
+                    <div className="text-slate-900 font-bold text-2xl tracking-tight leading-tight">
+                      ${metrics.netSalesUsd.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                    </div>
+                    {netSalesHistory.length > 1 && (
+                      <Sparkline data={netSalesHistory} width={50} height={18} className="opacity-70 hidden 2xl:block" color="#3b82f6" gradientId="netSalesGradient" />
+                    )}
                   </div>
                 </div>
                 <button
                   disabled={!canDeposit}
-                  className={`rounded-lg px-4 py-3 text-sm font-bold tracking-wide transition-all duration-300 ${
+                  className={`hidden 2xl:flex rounded-lg px-3 py-3 text-sm font-bold tracking-tight transition-all duration-300 whitespace-nowrap ${
                     canDeposit
                       ? "bg-white text-black hover:bg-gray-100 hover:scale-105 shadow-lg hover:shadow-xl"
                       : "bg-slate-700 text-slate-400 cursor-not-allowed"
@@ -344,11 +389,30 @@ export function FooterMetrics() {
                 </button>
               </div>
             </div>
-            <Metric label="Labor Cost" value={`$${metrics.laborCostUsd.toLocaleString(undefined, { minimumFractionDigits: 2 })}`} />
-            <Metric 
-              label="Labor %" 
-              value={`${metrics.netSalesUsd > 0 ? ((metrics.laborCostUsd / metrics.netSalesUsd) * 100).toFixed(1) : '0.0'}%`} 
-            />
+            <div className="col-span-1 2xl:col-span-3 flex flex-col group">
+              <div className="text-slate-300 text-xs font-medium tracking-wide uppercase mb-2">Labor Cost</div>
+              <div className="bg-[#C2BBA3] rounded-lg p-3 shadow-lg w-fit">
+                <div className="flex items-center gap-3">
+                  <div className="text-slate-900 font-bold text-2xl tracking-tight leading-tight">
+                    ${metrics.laborCostUsd.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                  </div>
+                  <Sparkline data={laborCostHistory} width={50} height={18} className="opacity-70 hidden 2xl:block" color="#10b981" gradientId="laborCostGradient" />
+                </div>
+              </div>
+            </div>
+            <div className="col-span-1 2xl:col-span-4 flex flex-col group">
+              <div className="text-slate-300 text-xs font-medium tracking-wide uppercase mb-2">Labor %</div>
+              <div className="bg-[#C2BBA3] rounded-lg p-3 shadow-lg w-fit">
+                <div className="flex items-center gap-3">
+                  <div className="text-slate-900 font-bold text-2xl tracking-tight leading-tight">
+                    {metrics.netSalesUsd > 0 ? ((metrics.laborCostUsd / metrics.netSalesUsd) * 100).toFixed(1) : '0.0'}%
+                  </div>
+                  {laborPercentHistory.length > 1 && (
+                    <Sparkline data={laborPercentHistory} width={50} height={18} className="opacity-70 hidden 2xl:block" color="#ffffff" gradientId="laborPercentGradient" />
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

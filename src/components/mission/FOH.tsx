@@ -2,8 +2,9 @@
 
 import { useMemo, useState, useEffect, useRef } from "react";
 import { useMissionStore } from "@/lib/missionStore";
-import type { Check, CheckStatus, ServiceType, PickupOrder } from "@/types/mission";
+import type { Check, CheckStatus, ServiceType, PickupOrder, StaffMember } from "@/types/mission";
 import { ServerAvatar } from "./ServerAvatar";
+import { OrderDetailsModal } from "./OrderDetailsModal";
 import { Source_Sans_3 } from "next/font/google";
 
 const sourceSans = Source_Sans_3({ subsets: ["latin"], weight: ["400", "600"] });
@@ -11,6 +12,7 @@ const sourceSans = Source_Sans_3({ subsets: ["latin"], weight: ["400", "600"] })
 export function FOH() {
   const { servers, checksByServerId, view, setView, closeCheck } = useMissionStore();
   const [activeTab, setActiveTab] = useState<"open" | "paid" | "closed">("open");
+  const [selectedCheck, setSelectedCheck] = useState<{ check: Check; server?: StaffMember } | null>(null);
 
   return (
     <div className="flex">
@@ -22,28 +24,38 @@ export function FOH() {
         backgroundAttachment: 'fixed'
       }}>
         <div className="flex gap-4 px-4 pb-24">
-          <ServerColumns />
+          <ServerColumns onCheckClick={setSelectedCheck} />
         </div>
       </div>
       <div className="w-80 shrink-0 border-l bg-white sticky top-0 h-screen hidden lg:block">
         <PickupColumn />
       </div>
+      
+      {/* Order Details Modal */}
+      {selectedCheck && (
+        <OrderDetailsModal
+          check={selectedCheck.check}
+          server={selectedCheck.server}
+          isOpen={!!selectedCheck}
+          onClose={() => setSelectedCheck(null)}
+        />
+      )}
     </div>
   );
 }
 
-function ServerColumns() {
+function ServerColumns({ onCheckClick }: { onCheckClick: (selection: { check: Check; server?: StaffMember }) => void }) {
   const { servers } = useMissionStore();
   return (
     <div className="flex gap-4">
       {servers.map((s) => (
-        <ServerColumn key={s.id} serverId={s.id} />
+        <ServerColumn key={s.id} serverId={s.id} onCheckClick={onCheckClick} />
       ))}
     </div>
   );
 }
 
-function ServerColumn({ serverId }: { serverId: string }) {
+function ServerColumn({ serverId, onCheckClick }: { serverId: string; onCheckClick: (selection: { check: Check; server?: StaffMember }) => void }) {
   const { servers, checksByServerId, serverCardsExpanded, toggleServerCardsExpanded } = useMissionStore();
   
   const server = servers.find((s) => s.id === serverId)!;
@@ -71,6 +83,48 @@ function ServerColumn({ serverId }: { serverId: string }) {
     return 15 + (Math.abs(hash) % 16); // 15-30 range
   }, [serverId]);
 
+  // Generate random 8-hour shift starting between 11 AM and 4 PM (on hour or half hour)
+  const getShiftTimes = useMemo(() => {
+    const hash = serverId.split('').reduce((a, b) => {
+      a = ((a << 5) - a) + b.charCodeAt(0);
+      return a & a;
+    }, 0);
+    
+    // Possible start times: 11:00, 11:30, 12:00, 12:30, 1:00, 1:30, 2:00, 2:30, 3:00, 3:30, 4:00
+    const startOptions = [
+      { hour: 11, minute: 0 },   // 11:00 AM
+      { hour: 11, minute: 30 },  // 11:30 AM
+      { hour: 12, minute: 0 },   // 12:00 PM
+      { hour: 12, minute: 30 },  // 12:30 PM
+      { hour: 13, minute: 0 },   // 1:00 PM
+      { hour: 13, minute: 30 },  // 1:30 PM
+      { hour: 14, minute: 0 },   // 2:00 PM
+      { hour: 14, minute: 30 },  // 2:30 PM
+      { hour: 15, minute: 0 },   // 3:00 PM
+      { hour: 15, minute: 30 },  // 3:30 PM
+      { hour: 16, minute: 0 },   // 4:00 PM
+    ];
+    
+    const startTime = startOptions[Math.abs(hash) % startOptions.length];
+    
+    // Calculate end time (8 hours later)
+    const endHour = startTime.hour + 8;
+    const endMinute = startTime.minute;
+    
+    // Format times
+    const formatTime = (hour: number, minute: number) => {
+      const hour12 = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
+      const ampm = hour >= 12 ? 'PM' : 'AM';
+      const minuteStr = minute === 0 ? ':00' : `:${minute}`;
+      return `${hour12}${minuteStr} ${ampm}`;
+    };
+    
+    return {
+      start: formatTime(startTime.hour, startTime.minute),
+      end: formatTime(endHour, endMinute)
+    };
+  }, [serverId]);
+
   // Map server names to avatar images
   const getAvatarPath = (serverName: string): string => {
     const nameMap: Record<string, string> = {
@@ -84,9 +138,14 @@ function ServerColumn({ serverId }: { serverId: string }) {
 
   // Determine status and styling based on overtime
   const getServerStatus = () => {
-    if (server.overtimeMinutes > 0) return "Overtime";
+    if (server.overtimeMinutes > 0) return "OVERTIME";
     if (server.overtimeMinutes < 0) return "Approaching Overtime";
     return "Clocked in";
+  };
+
+  const getStatusStyle = () => {
+    if (server.overtimeMinutes > 0) return { color: '#C62828' };
+    return {};
   };
 
   const getBorderColor = () => {
@@ -136,7 +195,7 @@ function ServerColumn({ serverId }: { serverId: string }) {
           }
           
           :global(.border-pulse-orange) {
-            animation: border-pulse-orange 2s ease-in-out infinite;
+            animation: border-pulse-orange 4s ease-in-out infinite;
             position: relative;
           }
         `}</style>
@@ -168,7 +227,7 @@ function ServerColumn({ serverId }: { serverId: string }) {
                 </svg>
               </button>
             </div>
-            <div className="text-[#6B6B6B] text-xs font-medium">{getServerStatus()}</div>
+            <div className="text-xs font-medium" style={server.overtimeMinutes > 0 ? getStatusStyle() : { color: '#6B6B6B' }}>{getServerStatus()}</div>
           </div>
         </div>
 
@@ -183,7 +242,7 @@ function ServerColumn({ serverId }: { serverId: string }) {
               {/* Clock icon - using the actual clock.png file */}
               <img src="/clock.png" alt="clock" className="w-3 h-3" />
               <span className="font-medium text-[#1A1A1A]">
-                {new Date(server.clockInAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}-5:00 PM
+                {getShiftTimes.start}-{getShiftTimes.end}
               </span>
             </div>
           </div>
@@ -191,7 +250,7 @@ function ServerColumn({ serverId }: { serverId: string }) {
           {/* Bottom row: Status and break time */}
           <div className="flex items-center justify-between text-xs">
             <div className="flex items-center gap-1">
-              <span className="text-[#6B6B6B] font-medium">Staff On Duty</span>
+              <span className="text-[#6B6B6B] font-medium">Server</span>
             </div>
             <div className="flex items-center gap-1">
               <img src="/brreak.png" alt="break" className="w-3 h-3" />
@@ -250,6 +309,8 @@ function ServerColumn({ serverId }: { serverId: string }) {
             key={`${c.id}-${c.openedAt}`} 
             check={c} 
             index={index}
+            server={server}
+            onCheckClick={onCheckClick}
           />
         ))}
         {!current.length && <div className="text-xs text-gray-500">No checks</div>}
@@ -273,7 +334,12 @@ function TabButton({ label, active, onClick }: { label: string; active: boolean;
   );
 }
 
-function CheckCard({ check, index = 0 }: { check: Check; index?: number }) {
+function CheckCard({ check, index = 0, server, onCheckClick }: { 
+  check: Check; 
+  index?: number; 
+  server?: StaffMember;
+  onCheckClick?: (selection: { check: Check; server?: StaffMember }) => void;
+}) {
   const [isNew, setIsNew] = useState(true);
   const [isVisible, setIsVisible] = useState(false);
 
@@ -320,6 +386,12 @@ function CheckCard({ check, index = 0 }: { check: Check; index?: number }) {
     }
   };
 
+  const handleClick = () => {
+    if (onCheckClick) {
+      onCheckClick({ check, server });
+    }
+  };
+
   return (
     <div 
       className={`rounded-xl border border-gray-200 bg-white p-4 hover:shadow-md transition-all duration-700 ease-out cursor-pointer group ${
@@ -333,6 +405,7 @@ function CheckCard({ check, index = 0 }: { check: Check; index?: number }) {
         transition: `all 0.7s cubic-bezier(0.34, 1.56, 0.64, 1)`,
         zIndex: isNew ? 10 : 1
       }}
+      onClick={handleClick}
     >
       {/* Header with check ID and status */}
       <div className="flex items-center justify-between mb-3">

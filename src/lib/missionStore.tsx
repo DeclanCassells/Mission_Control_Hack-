@@ -17,6 +17,9 @@ interface MissionStoreValue {
   pickup: PickupOrder[];
   tickets: Ticket[];
   metrics: MissionMetrics;
+  laborCostHistory: {timestamp: number, value: number}[];
+  netSalesHistory: {timestamp: number, value: number}[];
+  laborPercentHistory: {timestamp: number, value: number}[];
   view: "foh" | "boh";
   setView: (view: "foh" | "boh") => void;
   serverCardsExpanded: boolean;
@@ -222,6 +225,45 @@ export function MissionStoreProvider({ children }: { children: React.ReactNode }
   const [pickup, setPickup] = useState<PickupOrder[]>([]);
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [laborCostUsd, setLaborCostUsd] = useState<number>(340);
+  const [netSalesHistory, setNetSalesHistory] = useState<{timestamp: number, value: number}[]>([]);
+  const [laborPercentHistory, setLaborPercentHistory] = useState<{timestamp: number, value: number}[]>([]);
+  const [laborCostHistory, setLaborCostHistory] = useState<{timestamp: number, value: number}[]>(() => {
+    // Generate realistic historical data for the last 33 minutes (100 points * 20 seconds)
+    const history = [];
+    const startTime = Date.now() - (100 * 20 * 1000); // 33+ minutes ago
+    let currentValue = 340;
+    
+    for (let i = 0; i < 100; i++) {
+      const timestamp = startTime + (i * 20 * 1000);
+      const time = new Date(timestamp);
+      const hour = time.getHours();
+      const minute = time.getMinutes();
+      
+      // Simulate past rush patterns and variations
+      let rushMultiplier = 1;
+      if ((hour === 11 && minute >= 30) || (hour >= 12 && hour <= 14) || (hour === 14 && minute <= 30)) {
+        rushMultiplier = 1.2; // Lunch rush
+      } else if ((hour === 17 && minute >= 30) || (hour >= 18 && hour <= 21) || (hour === 21 && minute <= 30)) {
+        rushMultiplier = 1.3; // Dinner rush
+      } else if (hour >= 15 && hour <= 16) {
+        rushMultiplier = 0.8; // Slow afternoon
+      } else if (hour >= 22 || hour <= 10) {
+        rushMultiplier = 0.7; // Late night/early morning
+      }
+      
+      // Add some random variation and occasional staff changes
+      const randomFactor = 0.9 + (Math.random() * 0.2);
+      const staffChange = Math.random() < 0.05 ? (Math.random() < 0.5 ? 0.85 : 1.15) : 1;
+      
+      const baseIncrement = 2.5; // Base rate per 20 seconds
+      const increment = baseIncrement * rushMultiplier * randomFactor * staffChange;
+      currentValue += increment;
+      
+      history.push({ timestamp, value: Math.max(340, currentValue) });
+    }
+    
+    return history;
+  });
   const [view, setView] = useState<"foh" | "boh">("foh");
   const [serverCardsExpanded, setServerCardsExpanded] = useState<boolean>(true);
 
@@ -245,12 +287,47 @@ export function MissionStoreProvider({ children }: { children: React.ReactNode }
   useEffect(() => {
     if (!servers.length && !boh.length) return;
     const tick = () => {
-      const per20Seconds = (servers.reduce((acc, s) => acc + s.hourlyWageUsd / 60, 0) + boh.reduce((acc, s) => acc + s.hourlyWageUsd / 60, 0)) / 3;
-      setLaborCostUsd((v) => dollars(v + per20Seconds));
+      const baseRate = (servers.reduce((acc, s) => acc + s.hourlyWageUsd / 60, 0) + boh.reduce((acc, s) => acc + s.hourlyWageUsd / 60, 0)) / 3;
+      
+      // Add realistic variations based on time and random factors
+      const now = new Date();
+      const hour = now.getHours();
+      const minute = now.getMinutes();
+      
+      // Rush hour multipliers (lunch: 11:30-2:30, dinner: 5:30-9:30)
+      let rushMultiplier = 1;
+      if ((hour === 11 && minute >= 30) || (hour >= 12 && hour <= 14) || (hour === 14 && minute <= 30)) {
+        rushMultiplier = 1.2; // Lunch rush
+      } else if ((hour === 17 && minute >= 30) || (hour >= 18 && hour <= 21) || (hour === 21 && minute <= 30)) {
+        rushMultiplier = 1.3; // Dinner rush
+      } else if (hour >= 15 && hour <= 16) {
+        rushMultiplier = 0.8; // Slow afternoon
+      } else if (hour >= 22 || hour <= 10) {
+        rushMultiplier = 0.7; // Late night/early morning
+      }
+      
+      // Random variations (staff breaks, overtime, efficiency changes)
+      const randomFactor = 0.9 + (Math.random() * 0.2); // ±10% variation
+      
+      // Occasional staff changes (5% chance each tick)
+      let staffChangeMultiplier = 1;
+      if (Math.random() < 0.05) {
+        staffChangeMultiplier = Math.random() < 0.5 ? 0.85 : 1.15; // Staff leaving or joining
+      }
+      
+      const adjustedRate = baseRate * rushMultiplier * randomFactor * staffChangeMultiplier;
+      const newValue = dollars(laborCostUsd + adjustedRate);
+      setLaborCostUsd(newValue);
+      
+      // Update history (keep last 100 points to show trend over ~33 minutes)
+      setLaborCostHistory(prev => {
+        const newHistory = [...prev, { timestamp: Date.now(), value: newValue }];
+        return newHistory.slice(-100); // Keep only last 100 points
+      });
     };
     const id = setInterval(tick, 20_000);
     return () => clearInterval(id);
-  }, [servers, boh]);
+  }, [servers, boh, laborCostUsd]);
 
   // Add new checks every 30s
   useEffect(() => {
@@ -460,6 +537,24 @@ export function MissionStoreProvider({ children }: { children: React.ReactNode }
 
   const metrics = useMemo(() => computeMetrics(servers, boh, checksByServerId, laborCostUsd), [servers, boh, checksByServerId, laborCostUsd]);
 
+  // Track metrics history
+  useEffect(() => {
+    const timestamp = Date.now();
+    
+    // Update net sales history
+    setNetSalesHistory(prev => {
+      const newHistory = [...prev, { timestamp, value: metrics.netSalesUsd }];
+      return newHistory.slice(-100); // Keep only last 100 points
+    });
+    
+    // Update labor percent history
+    const laborPercent = metrics.netSalesUsd > 0 ? (metrics.laborCostUsd / metrics.netSalesUsd) * 100 : 0;
+    setLaborPercentHistory(prev => {
+      const newHistory = [...prev, { timestamp, value: laborPercent }];
+      return newHistory.slice(-100); // Keep only last 100 points
+    });
+  }, [metrics.netSalesUsd, metrics.laborCostUsd]);
+
   const value: MissionStoreValue = {
     servers,
     bohStaff: boh,
@@ -467,6 +562,9 @@ export function MissionStoreProvider({ children }: { children: React.ReactNode }
     pickup,
     tickets,
     metrics,
+    laborCostHistory,
+    netSalesHistory,
+    laborPercentHistory,
     view,
     setView,
     serverCardsExpanded,
